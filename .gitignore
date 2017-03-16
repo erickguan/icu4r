@@ -1,0 +1,13 @@
+Gemfile.lock
+.ruby-version
+.rvmrc
+mkmf.log
+pkg/
+tmp
+vendor
+bin/
+Makefile
+*.o
+*.bundle
+*.so
+*.a
