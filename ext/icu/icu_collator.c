@@ -15,10 +15,7 @@ typedef struct {
 
 static void collator_free(icu_collator_data* this)
 {
-    if (this->collator != NULL)
-        ucol_close(this->collator);
-    if (this != NULL)
-        ruby_xfree(this);
+    ucol_close(this->collator);
 }
 
 static size_t collator_memsize(const void* _)
@@ -84,19 +81,32 @@ VALUE collator_locale(int argc, VALUE* argv, VALUE self)
 
 VALUE collator_compare(VALUE self, VALUE str_a, VALUE str_b)
 {
+    StringValue(str_a);
+    StringValue(str_b);
     GET_COLLATOR(this);
+    UCollationResult result = UCOL_EQUAL;
 
-    char* ptr_a = StringValuePtr(str_a);
-    char* ptr_b = StringValuePtr(str_b);
-    int32_t len_a = RSTRING_LEN(str_a);
-    int32_t len_b = RSTRING_LEN(str_b);
-    UCollationResult result;
-    UErrorCode status = U_ZERO_ERROR;
+    if (icu_is_rb_str_as_utf_8(str_a) &&
+        icu_is_rb_str_as_utf_8(str_b)) {
+        UErrorCode status = U_ZERO_ERROR;
+        result = ucol_strcollUTF8(this->collator,
+                                  StringValuePtr(str_a),
+                                  RSTRING_LEN(str_a),
+                                  StringValuePtr(str_b),
+                                  RSTRING_LEN(str_b),
+                                  &status);
+        if (U_FAILURE(status)) {
+            rb_raise(rb_eICU_Error, u_errorName(status));
+        }
+    } else {
+        str_a = icu_uchar_string_new(str_a);
+        str_b = icu_uchar_string_new(str_b);
 
-    result = ucol_strcollUTF8(this->collator, ptr_a, len_a, str_b, len_b, &status);
-    if (U_FAILURE(status)) {
-        collator_free(this);
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        result = ucol_strcoll(this->collator,
+                              icu_uchar_string_ptr(str_a),
+                              icu_uchar_string_len(str_a),
+                              icu_uchar_string_ptr(str_b),
+                              icu_uchar_string_len(str_b));
     }
 
     return INT2FIX(result);
