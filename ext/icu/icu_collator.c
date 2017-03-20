@@ -9,12 +9,13 @@ static ID ID_actual;
 
 typedef struct {
     VALUE collator_instance;
-    int enc_idx;
+    int enc_idx; // TODO: reexamine the necessary for this?
     UCollator* collator;
 } icu_collator_data;
 
-static void collator_free(icu_collator_data* this)
+static void collator_free(void* _this)
 {
+    icu_collator_data* this = _this;
     ucol_close(this->collator);
 }
 
@@ -41,7 +42,7 @@ VALUE collator_initialize(VALUE self, VALUE locale)
 {
     GET_COLLATOR(this);
 
-    this->enc_idx = icu_choose_encoding();
+    this->enc_idx = 0;
     this->collator_instance = self;
     UErrorCode status = U_ZERO_ERROR;
     this->collator = ucol_open(StringValueCStr(locale), &status);
@@ -99,14 +100,15 @@ VALUE collator_compare(VALUE self, VALUE str_a, VALUE str_b)
             rb_raise(rb_eICU_Error, u_errorName(status));
         }
     } else {
-        str_a = icu_uchar_string_new(str_a);
-        str_b = icu_uchar_string_new(str_b);
-
+        VALUE tmp_a = icu_uchar_string_alloc();
+        VALUE tmp_b = icu_uchar_string_alloc();
+        icu_uchar_string_replace(tmp_a, str_a);
+        icu_uchar_string_replace(tmp_b, str_b);
         result = ucol_strcoll(this->collator,
-                              icu_uchar_string_ptr(str_a),
-                              icu_uchar_string_len(str_a),
-                              icu_uchar_string_ptr(str_b),
-                              icu_uchar_string_len(str_b));
+                              icu_uchar_string_ptr(tmp_a),
+                              icu_uchar_string_len(tmp_a),
+                              icu_uchar_string_ptr(tmp_b),
+                              icu_uchar_string_len(tmp_b));
     }
 
     return INT2FIX(result);
