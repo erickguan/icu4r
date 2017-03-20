@@ -1,8 +1,8 @@
 ICU-next - A Unicode processing functions ruby gem - binding to ICU
 
-No API compatibility is guaranteed at this alpha stage.
+Alpha stage. Proof of concept.
 
-Ruby required 2.3.1
+Ruby required 2.3.1.
 
 ## Design
 
@@ -47,10 +47,15 @@ in that object depending on encoding's index.
 returns the c struct encoding and ruby encoding object accordingly.
 - `rb_locale_encindex()` gets the encoding index from the locale.
 
+### Limitations
+
+- It's a common problem C Ruby extension faced.
+
 ## Contributing
 
 ### TODO
 
+- Support Ruby 2.2+. Rails 5 requires Ruby 2.2.
 - support encoding other than UTF-8?
 - stream support
 - close ICU data in memory?

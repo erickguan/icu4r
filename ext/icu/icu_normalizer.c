@@ -78,9 +78,9 @@ VALUE normalizer_normalize(VALUE self, VALUE rb_str)
 {
     StringValue(rb_str);
     GET_NORMALIZER(this);
-    VALUE in = icu_uchar_string_alloc();
-    icu_uchar_string_replace(in, rb_str);
-    VALUE out = icu_uchar_string_alloc();
+    VALUE in = icu_uchar_string_alloc(rb_cICU_UCharString);
+    in = icu_uchar_string_replace(in, rb_str);
+    VALUE out = icu_uchar_string_alloc(rb_cICU_UCharString);
     icu_uchar_string_new_capa_enc(out, RSTRING_LEN(rb_str) * 2 + 1, ICU_RUBY_ENCODING_INDEX);
 
     UErrorCode status = U_ZERO_ERROR;

@@ -100,8 +100,8 @@ VALUE collator_compare(VALUE self, VALUE str_a, VALUE str_b)
             rb_raise(rb_eICU_Error, u_errorName(status));
         }
     } else {
-        VALUE tmp_a = icu_uchar_string_alloc();
-        VALUE tmp_b = icu_uchar_string_alloc();
+        VALUE tmp_a = icu_uchar_string_alloc(rb_cICU_UCharString);
+        VALUE tmp_b = icu_uchar_string_alloc(rb_cICU_UCharString);
         icu_uchar_string_replace(tmp_a, str_a);
         icu_uchar_string_replace(tmp_b, str_b);
         result = ucol_strcoll(this->collator,

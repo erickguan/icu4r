@@ -2,9 +2,14 @@
 #include "unicode/ustring.h"
 #include "unicode/ucnv.h"
 
+// #define ICU_UCHAR_STRING_DEBUG 1
+
 #define RUBY_C_STRING_TERMINATOR_SIZE 1
 #define GET_STRING(_data) icu_uchar_string_data* _data; \
                           TypedData_Get_Struct(self, icu_uchar_string_data, &icu_uchar_string_type, _data)
+
+VALUE rb_cICU_UCharString;
+
 
 /* Data types */
 typedef struct {
@@ -45,13 +50,13 @@ static const rb_data_type_t icu_uchar_string_type = {
 /* Always allocate the internal string in a C function where you modify it
  * as Ruby GC scans the C stacks and registers to find out GC root
  */
-VALUE icu_uchar_string_alloc(void)
+VALUE icu_uchar_string_alloc(VALUE self)
 {
     icu_uchar_string_data* this;
-    return TypedData_Make_Struct(rb_cData, icu_uchar_string_data, &icu_uchar_string_type, this);
+    return TypedData_Make_Struct(self, icu_uchar_string_data, &icu_uchar_string_type, this);
 }
 
-void icu_uchar_string_replace(VALUE self, VALUE rb_str)
+VALUE icu_uchar_string_replace(VALUE self, VALUE rb_str)
 {
     GET_STRING(this);
     UErrorCode status = U_ZERO_ERROR;
@@ -67,17 +72,20 @@ void icu_uchar_string_replace(VALUE self, VALUE rb_str)
         }
     }
 
-    this->capa = RSTRING_LEN(rb_str) + 1; // TODO: reconsider initial size
+    this->capa = RSTRING_LEN(rb_str) + 2; // TODO: reconsider initial size
     this->ptr = ALLOC_N(UChar, this->capa);
     status = U_ZERO_ERROR;
 
+#ifdef ICU_UCHAR_STRING_DEBUG
+    printf("icu_uchar_string_replace: %p %p %p %p %ld\n", self, this->ptr, rb_str, RSTRING_PTR(rb_str), RSTRING_LEN(rb_str));
+#endif
     if (this->converter == NULL) {
-        u_strFromUTF8Lenient(this->ptr,
-                             this->capa,
-                             &(this->len),
-                             RSTRING_PTR(rb_str),
-                             RSTRING_LEN(rb_str),
-                             &status);
+        u_strFromUTF8(this->ptr,
+                      this->capa,
+                      &(this->len),
+                      RSTRING_PTR(rb_str),
+                      RSTRING_LEN(rb_str),
+                      &status);
         if (U_FAILURE(status)) {
             rb_raise(rb_eICU_Error, u_errorName(status));
         }
@@ -104,6 +112,7 @@ void icu_uchar_string_replace(VALUE self, VALUE rb_str)
         } while (retry);
         this->len = required_capa;
     }
+    return self;
 }
 
 void icu_uchar_string_new_capa(VALUE self, int32_t capa)
@@ -227,4 +236,10 @@ int32_t icu_uchar_string_capa(VALUE self)
 {
     GET_STRING(this);
     return this->capa;
+}
+
+void init_uchar_string(void)
+{
+    rb_cICU_UCharString = rb_define_class_under(rb_mICU, "UCharString", rb_cData);
+    rb_define_alloc_func(rb_cICU_UCharString, icu_uchar_string_alloc);
 }
