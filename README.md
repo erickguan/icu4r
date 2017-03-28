@@ -55,6 +55,7 @@ returns the c struct encoding and ruby encoding object accordingly.
 
 ### TODO
 
+- Glib2 gem?
 - Support Ruby 2.2+. Rails 5 requires Ruby 2.2.
 - support encoding other than UTF-8?
 - stream support
