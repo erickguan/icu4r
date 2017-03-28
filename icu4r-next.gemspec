@@ -17,4 +17,6 @@ Gem::Specification.new do |s|
   s.require_paths = ["lib"]
   s.add_development_dependency 'rake-compiler', ">= 0.7.5"
   s.add_development_dependency 'rspec'
+  s.add_development_dependency 'twitter_cldr' # for benchmark
+  s.add_development_dependency 'activesupport'
 end
