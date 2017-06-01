@@ -111,7 +111,7 @@ VALUE collator_compare(VALUE self, VALUE str_a, VALUE str_b)
                               icu_uchar_string_len(tmp_b));
     }
 
-    return INT2FIX(result);
+    return INT2NUM(result);
 }
 
 void init_icu_collator(void)

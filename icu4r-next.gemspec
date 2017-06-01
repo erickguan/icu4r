@@ -19,4 +19,5 @@ Gem::Specification.new do |s|
   s.add_development_dependency 'rspec'
   s.add_development_dependency 'twitter_cldr' # for benchmark
   s.add_development_dependency 'activesupport'
+  s.add_development_dependency 'pkg-config'
 end

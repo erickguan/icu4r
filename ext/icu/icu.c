@@ -8,6 +8,7 @@ void Init_icu(void)
     init_icu_errors();
     init_icu_collator();
     init_icu_normalizer();
+    init_icu_spoof_checker();
 }
 
 /* vim: set expandtab sws=4 sw=4: */
