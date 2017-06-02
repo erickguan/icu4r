@@ -12,7 +12,10 @@ describe ICU::Collator do
   describe '.compare' do
     it "should compare two strings" do
       expect(subject.compare("blåbærsyltetøy", "blah")).to eq 1
+      expect(subject.compare("blåbærsyltetøy".encode("UTF-16"), "blah")).to eq 1
+      expect(subject.compare("blåbærsyltetøy", "blah")).to eq 1
       expect(subject.compare("blah", "blah")).to eq 0
+      expect(subject.compare("blah".encode("UTF-16"), "blah".encode("UTF-32"))).to eq 0
       expect(subject.compare("ba", "bl")).to eq -1
     end
   end

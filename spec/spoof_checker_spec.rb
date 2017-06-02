@@ -20,18 +20,35 @@ describe ICU::SpoofChecker do
   end
 
   describe '.confusable?' do
-    it 'can examine the confusable' do
-      expect(subject.confusable?("lscopecC鬼obƅa", "1scopecC⿁оbьа")).to be_truthy
+    shared_examples "confusable example" do |encodings|
+      encodings.each do |encoding|
+        it "can examine the confusable" do
+          expect(subject.confusable?("lscopecC鬼obƅa", "1scopecC⿁оbьа")).to > 0
+          expect(subject.confusable?("lscopecC鬼obƅa".encode(encoding), "1scopecC⿁оbьа")).to > 0
+          expect(subject.confusable?("lscopecC鬼obƅa".encode(encoding), "1scopecC⿁оbьа".encode(encoding))).to > 0
+        end
+      end
     end
 
-    it "returns false when it's not confusable" do
-      expect(subject.confusable?("abc", "def")).to eq 0
+    shared_examples "normal example" do |encodings|
+      encodings.each do |encoding|
+        it "returns 0 when it's not confusable" do
+          expect(subject.confusable?("abc", "def")).to eq 0
+          expect(subject.confusable?("abc".encode(encoding), "def")).to eq 0
+          expect(subject.confusable?("abc".encode(encoding), "def".encode(encoding))).to eq 0
+        end
+      end
     end
+
+    it_should_behave_like "confusable example", ENCODINGS
+    it_should_behave_like "normal example", ENCODINGS
   end
 
   describe '.get_skeleton' do
     it 'can gets the skeleton representation' do
       expect(subject.get_skeleton("𝔭𝒶ỿ𝕡𝕒ℓ") == subject.get_skeleton("ρ⍺у𝓅𝒂ן")).to be_truthy
+      expect(subject.get_skeleton("𝔭𝒶ỿ𝕡𝕒ℓ".encode("UTF-16")) == subject.get_skeleton("ρ⍺у𝓅𝒂ן")).to be_truthy
+      expect(subject.get_skeleton("𝔭𝒶ỿ𝕡𝕒ℓ".encode("UTF-16")) == subject.get_skeleton("ρ⍺у𝓅𝒂ן".encode("UTF-16"))).to be_truthy
       expect(subject.get_skeleton("𝔭𝒶ỿ𝕡𝕒ℓ") == subject.get_skeleton("paypal")).to be_truthy
       expect(subject.get_skeleton("𝔭𝒶ỿ𝕡𝕒ℓ") == subject.get_skeleton("ρ⍺у𝓅𝒂ן")).to be_truthy
       expect(subject.get_skeleton("𝔭𝒶ỿ𝕡𝕒ℓ") == subject.get_skeleton("paypal")).to be_truthy
