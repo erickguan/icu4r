@@ -119,67 +119,36 @@ VALUE spoof_checker_confusable(VALUE self, VALUE str_a, VALUE str_b)
 
 VALUE spoof_checker_get_skeleton(VALUE self, VALUE str)
 {
-    GET_SPOOF_CHECKER(this);
     StringValue(str);
+    GET_SPOOF_CHECKER(this);
 
+    VALUE in = icu_uchar_string_alloc(rb_cICU_UCharString);
+    icu_uchar_string_replace(in, str);
+    VALUE out = icu_uchar_string_alloc(rb_cICU_UCharString);
+    icu_uchar_string_new_capa_enc(out, icu_uchar_string_len(in) * 2 + 1, ICU_RUBY_ENCODING_INDEX);
+    int retry = FALSE;
+    int32_t len_bytes;
     UErrorCode status = U_ZERO_ERROR;
-    if (icu_is_rb_str_as_utf_8(str)) {
-        int32_t len = RSTRING_LEN(str);
-        int32_t dest_capa = len * 2 + 1;
-        char* dest = ALLOC_N(char, dest_capa);
-        int retry = FALSE;
-        int32_t len_bytes;
-        do {
-            len_bytes = uspoof_getSkeletonUTF8(this->checker,
-                                               0,
-                                               StringValuePtr(str),
-                                               RSTRING_LEN(str),
-                                               dest,
-                                               dest_capa,
-                                               &status);
-            if (!retry && status == U_BUFFER_OVERFLOW_ERROR) {
-                retry = TRUE;
-                dest_capa = len_bytes;
-                REALLOC_N(dest, char, dest_capa);
-                status = U_ZERO_ERROR;
-            } else if (U_FAILURE(status)) {
-                rb_raise(rb_eICU_Error, u_errorName(status));
-            } else { // retry == true && U_SUCCESS(status)
-                break;
-            }
-        } while (retry);
+    do {
+       len_bytes = uspoof_getSkeleton(this->checker,
+                                      0 /* deprecated */,
+                                      icu_uchar_string_ptr(in),
+                                      icu_uchar_string_len(in),
+                                      icu_uchar_string_ptr(out),
+                                      icu_uchar_string_capa(out),
+                                      &status);
+       if (!retry && status == U_BUFFER_OVERFLOW_ERROR) {
+           retry = TRUE;
+           icu_uchar_string_set_capa(out, len_bytes);
+           status = U_ZERO_ERROR;
+       } else if (U_FAILURE(status)) {
+           rb_raise(rb_eICU_Error, u_errorName(status));
+       } else { // retry == true && U_SUCCESS(status)
+           break;
+       }
+    } while (retry);
 
-        return rb_str_new_cstr(dest);
-    } else {
-        VALUE in = icu_uchar_string_alloc(rb_cICU_UCharString);
-        in = icu_uchar_string_replace(in, str);
-        VALUE out = icu_uchar_string_alloc(rb_cICU_UCharString);
-        icu_uchar_string_new_capa_enc(out, RSTRING_LEN(str) * 2 + 1, ICU_RUBY_ENCODING_INDEX);
-        int retry = FALSE;
-        int32_t len_bytes;
-
-        UErrorCode status = U_ZERO_ERROR;
-        do {
-           len_bytes = uspoof_getSkeleton(this->checker,
-                                          0,
-                                          icu_uchar_string_ptr(in),
-                                          icu_uchar_string_len(in),
-                                          icu_uchar_string_ptr(out),
-                                          icu_uchar_string_capa(out),
-                                          &status);
-           if (!retry && status == U_BUFFER_OVERFLOW_ERROR) {
-               retry = TRUE;
-               icu_uchar_string_set_capa(out, len_bytes);
-               status = U_ZERO_ERROR;
-           } else if (U_FAILURE(status)) {
-               rb_raise(rb_eICU_Error, u_errorName(status));
-           } else { // retry == true && U_SUCCESS(status)
-               break;
-           }
-        } while (retry);
-
-        return icu_uchar_string_to_rb_enc_str(out);
-    }
+    return icu_uchar_string_to_rb_enc_str(out);
 }
 
 #define DEFINE_SPOOF_ENUM_CONST(_MODULE, _NAME) rb_define_const(_MODULE, #_NAME, INT2NUM(USPOOF_##_NAME))

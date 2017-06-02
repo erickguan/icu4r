@@ -14,8 +14,8 @@ describe ICU::SpoofChecker do
 
   describe 'get and set restriction_level' do
     it 'is successful' do
-      subject.restriction_level = ICU::SpoofChecker::HIGHLY_RESTRICTIVE
-      expect(subject.restriction_level).to eq ICU::SpoofChecker::HIGHLY_RESTRICTIVE
+      subject.restriction_level = ICU::SpoofChecker::RestrictionLevel::HIGHLY_RESTRICTIVE
+      expect(subject.restriction_level).to eq ICU::SpoofChecker::RestrictionLevel::HIGHLY_RESTRICTIVE
     end
   end
 
@@ -23,9 +23,9 @@ describe ICU::SpoofChecker do
     shared_examples "confusable example" do |encodings|
       encodings.each do |encoding|
         it "can examine the confusable" do
-          expect(subject.confusable?("lscopecC鬼obƅa", "1scopecC⿁оbьа")).to > 0
-          expect(subject.confusable?("lscopecC鬼obƅa".encode(encoding), "1scopecC⿁оbьа")).to > 0
-          expect(subject.confusable?("lscopecC鬼obƅa".encode(encoding), "1scopecC⿁оbьа".encode(encoding))).to > 0
+          expect(subject.confusable?("lscopecC鬼obƅa", "1scopecC⿁оbьа")).to be > 0
+          expect(subject.confusable?("lscopecC鬼obƅa".encode(encoding), "1scopecC⿁оbьа")).to be > 0
+          expect(subject.confusable?("lscopecC鬼obƅa".encode(encoding), "1scopecC⿁оbьа".encode(encoding))).to be > 0
         end
       end
     end
@@ -40,12 +40,13 @@ describe ICU::SpoofChecker do
       end
     end
 
-    it_should_behave_like "confusable example", ENCODINGS
-    it_should_behave_like "normal example", ENCODINGS
+    it_should_behave_like "confusable example", %w(UTF-8 UTF-16 UTF-32)
+    it_should_behave_like "normal example", %w(UTF-8 UTF-16 UTF-32)
   end
 
   describe '.get_skeleton' do
     it 'can gets the skeleton representation' do
+      p subject.get_skeleton("𝔭𝒶ỿ𝕡𝕒ℓ")
       expect(subject.get_skeleton("𝔭𝒶ỿ𝕡𝕒ℓ") == subject.get_skeleton("ρ⍺у𝓅𝒂ן")).to be_truthy
       expect(subject.get_skeleton("𝔭𝒶ỿ𝕡𝕒ℓ".encode("UTF-16")) == subject.get_skeleton("ρ⍺у𝓅𝒂ן")).to be_truthy
       expect(subject.get_skeleton("𝔭𝒶ỿ𝕡𝕒ℓ".encode("UTF-16")) == subject.get_skeleton("ρ⍺у𝓅𝒂ן".encode("UTF-16"))).to be_truthy
