@@ -162,8 +162,8 @@ VALUE spoof_checker_get_skeleton(VALUE self, VALUE str)
         do {
            len_bytes = uspoof_getSkeleton(this->checker,
                                           0,
-                                          in,
-                                          RSTRING_LEN(str),
+                                          icu_uchar_string_ptr(in),
+                                          icu_uchar_string_len(in),
                                           icu_uchar_string_ptr(out),
                                           icu_uchar_string_capa(out),
                                           &status);
