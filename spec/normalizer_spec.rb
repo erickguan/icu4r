@@ -13,7 +13,7 @@ describe ICU::Normalizer do
         end
       end
 
-      it_should_behave_like "normalization example", ENCODINGS
+      it_should_behave_like "normalization example", %w(UTF-8 UTF-16 UTF-32 ISO-8859-1)
     end
   end
 
@@ -29,7 +29,7 @@ describe ICU::Normalizer do
         end
       end
 
-      it_should_behave_like "normalization example", ENCODINGS
+      it_should_behave_like "normalization example", %w(UTF-8 UTF-16 UTF-32 ISO-8859-1)
     end
   end
 end

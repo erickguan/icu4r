@@ -8,7 +8,7 @@ describe ICU::Collator do
       expect(subject.sort(%w[å ø æ])).to eq %w[æ ø å]
     end
   end
-  
+
   describe '.compare' do
     it "should compare two strings" do
       expect(subject.compare("blåbærsyltetøy", "blah")).to eq 1
