@@ -1,10 +1,8 @@
 #include "icu.h"
-#include "unicode/ustring.h"
 #include "unicode/ucnv.h"
 
 // #define ICU_UCHAR_STRING_DEBUG 1
 
-#define RUBY_C_STRING_TERMINATOR_SIZE 1
 #define GET_STRING(_data) icu_uchar_string_data* _data; \
                           TypedData_Get_Struct(self, icu_uchar_string_data, &icu_uchar_string_type, _data)
 
@@ -90,7 +88,7 @@ VALUE icu_uchar_string_replace(VALUE self, VALUE rb_str)
             rb_raise(rb_eICU_Error, u_errorName(status));
         }
     } else {
-        int retry = FALSE;
+        int retried = FALSE;
         int32_t required_capa;
         do {
             required_capa = ucnv_toUChars(this->converter,
@@ -99,17 +97,17 @@ VALUE icu_uchar_string_replace(VALUE self, VALUE rb_str)
                                           RSTRING_PTR(rb_str),
                                           RSTRING_LEN(rb_str),
                                           &status);
-            if (!retry && status == U_BUFFER_OVERFLOW_ERROR) {
-                retry = TRUE;
+            if (!retried && status == U_BUFFER_OVERFLOW_ERROR) {
+                retried = TRUE;
                 this->capa = required_capa + 2;
                 REALLOC_N(this->ptr, UChar, this->capa);
                 status = U_ZERO_ERROR;
             } else if (U_FAILURE(status)) {
                 rb_raise(rb_eICU_Error, u_errorName(status));
-            } else { // retry == true && U_SUCCESS(status)
+            } else { // retried == true && U_SUCCESS(status)
                 break;
             }
-        } while (retry);
+        } while (retried);
         this->len = required_capa;
     }
     return self;
@@ -127,6 +125,39 @@ void icu_uchar_string_set_capa(VALUE self, int32_t capa)
     GET_STRING(this);
     this->capa = capa;
     REALLOC_N(this->ptr, UChar, capa);
+}
+
+// some ICU gives a pointer to buffer, so it's important to release it before
+// uchar string dies
+void icu_uchar_string_clear_ptr(VALUE self)
+{
+    GET_STRING(this);
+    this->ptr = NULL;
+}
+
+VALUE icu_uchar_string_from_rb_str(VALUE str)
+{
+    VALUE ustr = icu_uchar_string_alloc(rb_cICU_UCharString);
+    icu_uchar_string_replace(ustr, str);
+    return ustr;
+}
+
+VALUE icu_uchar_string_from_uchar_str(UChar* str, int32_t len)
+{
+    VALUE ustr = icu_uchar_string_alloc(rb_cICU_UCharString);
+    if (len <= 0) {
+        len = u_strlen(str);
+    }
+    icu_uchar_string_set_capa_enc(ustr, len + RUBY_C_STRING_TERMINATOR_SIZE, ICU_RUBY_ENCODING_INDEX);
+    icu_uchar_string_set_uchar(ustr, str, len);
+    return ustr;
+}
+
+void icu_uchar_string_set_uchar(VALUE self, UChar* str, int32_t len)
+{
+    GET_STRING(this);
+    this->ptr = str;
+    this->len = len;
 }
 
 void icu_uchar_string_set_enc(VALUE self, int enc_idx)
@@ -187,25 +218,25 @@ VALUE icu_uchar_string_to_rb_enc_str(VALUE self)
     } else {
         dest_capa = this->len * 2 + 4;
         dest = ALLOC_N(char, dest_capa);
-        int retry = FALSE;
+        int retried = FALSE;
         do {
-           dest_len = ucnv_fromUChars(this->converter,
-                                      dest,
-                                      dest_capa,
-                                      this->ptr,
-                                      this->len,
-                                      &status);
-            if (!retry && status == U_BUFFER_OVERFLOW_ERROR) {
-                retry = TRUE;
+            dest_len = ucnv_fromUChars(this->converter,
+                                       dest,
+                                       dest_capa,
+                                       this->ptr,
+                                       this->len,
+                                       &status);
+            if (!retried && status == U_BUFFER_OVERFLOW_ERROR) {
+                retried = TRUE;
                 dest_capa = dest_len + RUBY_C_STRING_TERMINATOR_SIZE;
                 REALLOC_N(dest, char, dest_capa);
                 status = U_ZERO_ERROR;
             } else if (U_FAILURE(status)) {
                 rb_raise(rb_eICU_Error, u_errorName(status));
-            } else { // retry == true && U_SUCCESS(status)
+            } else { // retried == true && U_SUCCESS(status)
                 break;
             }
-        } while (retry);
+        } while (retried);
     }
 
     VALUE rb_str = rb_enc_str_new(dest, dest_len, rb_enc_from_index(this->rb_enc_idx.to));

@@ -8,8 +8,11 @@
 #define ONIG_ESCAPE_UCHAR_COLLISION 1
 #include "ruby.h"
 #undef UChar
+#include "unicode/ustring.h"
 
 /* Globals */
+
+#define RUBY_C_STRING_TERMINATOR_SIZE 1
 
 extern VALUE rb_mICU;
 extern VALUE rb_eICU_Error;
@@ -27,8 +30,12 @@ int icu_is_rb_enc_idx_as_utf_8                         _(( int ));
 int icu_is_rb_str_as_utf_8                             _(( VALUE ));
 const char* icu_rb_str_enc_name                        _(( int ));
 int icu_rb_str_enc_idx                                 _(( VALUE ));
+void  icu_uchar_string_clear_ptr                       _(( VALUE ));
 VALUE icu_uchar_string_alloc                           _(( VALUE ));
 VALUE icu_uchar_string_replace                         _(( VALUE, VALUE ));
+VALUE icu_uchar_string_from_rb_str                     _(( VALUE ));
+VALUE icu_uchar_string_from_uchar_str                  _(( UChar*, int32_t ));
+void icu_uchar_string_set_uchar                        _(( VALUE, UChar*, int32_t ));
 void icu_uchar_string_new_capa_enc                     _(( VALUE, int32_t, int ));
 void icu_uchar_string_set_capa_enc                     _(( VALUE, int32_t, int ));
 void icu_uchar_string_new_capa                         _(( VALUE, int32_t ));

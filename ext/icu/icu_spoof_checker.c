@@ -7,11 +7,6 @@
 VALUE rb_cICU_SpoofChecker;
 VALUE rb_mChecks;
 VALUE rb_mRestrictionLevel;
-static ID ID_single_script_confusable;
-static ID ID_nfkc;
-static ID ID_nfkc_cf;
-static ID ID_compose;
-static ID ID_decompose;
 
 typedef struct {
     VALUE instance;
@@ -102,10 +97,8 @@ VALUE spoof_checker_confusable(VALUE self, VALUE str_a, VALUE str_b)
     StringValue(str_b);
     GET_SPOOF_CHECKER(this);
 
-    VALUE tmp_a = icu_uchar_string_alloc(rb_cICU_UCharString);
-    VALUE tmp_b = icu_uchar_string_alloc(rb_cICU_UCharString);
-    icu_uchar_string_replace(tmp_a, str_a);
-    icu_uchar_string_replace(tmp_b, str_b);
+    VALUE tmp_a = icu_uchar_string_from_rb_str(str_a);
+    VALUE tmp_b = icu_uchar_string_from_rb_str(str_b);
     UErrorCode status = U_ZERO_ERROR;
     int32_t result = uspoof_areConfusable(this->checker,
                                           icu_uchar_string_ptr(tmp_a),
@@ -126,7 +119,7 @@ VALUE spoof_checker_get_skeleton(VALUE self, VALUE str)
     icu_uchar_string_replace(in, str);
     VALUE out = icu_uchar_string_alloc(rb_cICU_UCharString);
     icu_uchar_string_new_capa_enc(out, icu_uchar_string_len(in) * 2 + 1, ICU_RUBY_ENCODING_INDEX);
-    int retry = FALSE;
+    int retried = FALSE;
     int32_t len_bytes;
     UErrorCode status = U_ZERO_ERROR;
     do {
@@ -137,16 +130,16 @@ VALUE spoof_checker_get_skeleton(VALUE self, VALUE str)
                                       icu_uchar_string_ptr(out),
                                       icu_uchar_string_capa(out),
                                       &status);
-       if (!retry && status == U_BUFFER_OVERFLOW_ERROR) {
-           retry = TRUE;
+       if (!retried && status == U_BUFFER_OVERFLOW_ERROR) {
+           retried = TRUE;
            icu_uchar_string_set_capa(out, len_bytes);
            status = U_ZERO_ERROR;
        } else if (U_FAILURE(status)) {
            rb_raise(rb_eICU_Error, u_errorName(status));
-       } else { // retry == true && U_SUCCESS(status)
+       } else { // retried == true && U_SUCCESS(status)
            break;
        }
-    } while (retry);
+    } while (retried);
 
     return icu_uchar_string_to_rb_enc_str(out);
 }
