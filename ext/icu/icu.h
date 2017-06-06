@@ -5,9 +5,11 @@
 #include <stdlib.h>
 
 /* Ruby headers */
-#define ONIG_ESCAPE_UCHAR_COLLISION 1
-#include "ruby.h"
-#undef UChar
+#define ONIG_ESCAPE_UCHAR_COLLISION 1  // ruby.h defines UChar macro
+#include <ruby.h>
+#ifdef UChar // fail-safe
+  #undef UChar
+#endif
 #include "unicode/ustring.h"
 
 /* Globals */
@@ -22,7 +24,7 @@ extern VALUE rb_cICU_Transliterator;
 
 /* Prototypes */
 void Init_icu                                          _(( void ));
-void init_icu_errors                                   _(( void ));
+void init_rb_errors                                    _(( void ));
 void init_icu_collator                                 _(( void ));
 void init_icu_normalizer                               _(( void ));
 void init_icu_spoof_checker                            _(( void ));

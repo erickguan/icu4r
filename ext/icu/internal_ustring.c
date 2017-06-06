@@ -262,18 +262,5 @@ int32_t icu_ustring_capa(VALUE self)
     return this->capa;
 }
 
-VALUE icu_ustring_initialize(VALUE self, VALUE rb_str)
-{
-    icu_ustring_from_rb_str(rb_str);
-    return self;
-}
-
-void init_ustring(void)
-{
-    rb_cICU_UString = rb_define_class_under(rb_mICU, "UString", rb_cData);
-    rb_define_alloc_func(rb_cICU_UString, icu_ustring_alloc);
-    rb_define_method(rb_cICU_Collator, "initialize", icu_ustring_initialize, 1);
-}
-
 #undef GET_STRING
 #undef GET_STRING_VAL

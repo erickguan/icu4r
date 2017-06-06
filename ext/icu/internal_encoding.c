@@ -1,4 +1,4 @@
-#include "ruby.h"
+#include "icu.h"
 #include "ruby/encoding.h"
 
 int icu_is_rb_enc_idx_as_utf_8(int enc_idx)
