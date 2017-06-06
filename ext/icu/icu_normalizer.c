@@ -78,21 +78,30 @@ VALUE normalizer_normalize(VALUE self, VALUE rb_str)
 {
     StringValue(rb_str);
     GET_NORMALIZER(this);
-    VALUE in = icu_uchar_string_alloc(rb_cICU_UCharString);
-    in = icu_uchar_string_replace(in, rb_str);
+    VALUE in = icu_uchar_string_from_rb_str(rb_str);
     VALUE out = icu_uchar_string_alloc(rb_cICU_UCharString);
-    icu_uchar_string_new_capa_enc(out, RSTRING_LEN(rb_str) * 2 + 1, ICU_RUBY_ENCODING_INDEX);
+    icu_uchar_string_new_capa_enc(out, RSTRING_LEN(rb_str) * 2 + RUBY_C_STRING_TERMINATOR_SIZE, ICU_RUBY_ENCODING_INDEX);
 
     UErrorCode status = U_ZERO_ERROR;
-    int32_t len = unorm2_normalize(this->normalizer,
-                                   icu_uchar_string_ptr(in),
-                                   icu_uchar_string_len(in),
-                                   icu_uchar_string_ptr(out),
-                                   icu_uchar_string_capa(out),
-                                   &status);
-    if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
-    }
+    int retried = FALSE;
+    int32_t len;
+    do {
+        len = unorm2_normalize(this->normalizer,
+                               icu_uchar_string_ptr(in),
+                               icu_uchar_string_len(in),
+                               icu_uchar_string_ptr(out),
+                               icu_uchar_string_capa(out),
+                               &status);
+        if (!retried && status == U_BUFFER_OVERFLOW_ERROR) {
+            retried = TRUE;
+            icu_uchar_string_set_capa(out, len + RUBY_C_STRING_TERMINATOR_SIZE);
+            status = U_ZERO_ERROR;
+        } else if (U_FAILURE(status)) {
+            rb_raise(rb_eICU_Error, u_errorName(status));
+        } else { // retried == true && U_SUCCESS(status)
+            break;
+        }
+    } while (retried);
     icu_uchar_string_set_len(out, len);
 
     return icu_uchar_string_to_rb_enc_str(out);

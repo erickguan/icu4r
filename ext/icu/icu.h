@@ -33,6 +33,7 @@ int icu_rb_str_enc_idx                                 _(( VALUE ));
 void  icu_uchar_string_clear_ptr                       _(( VALUE ));
 VALUE icu_uchar_string_alloc                           _(( VALUE ));
 VALUE icu_uchar_string_replace                         _(( VALUE, VALUE ));
+VALUE icu_uchar_string_new_buf_capa_enc                _(( int32_t, int ));
 VALUE icu_uchar_string_from_rb_str                     _(( VALUE ));
 VALUE icu_uchar_string_from_uchar_str                  _(( UChar*, int32_t ));
 void icu_uchar_string_set_uchar                        _(( VALUE, UChar*, int32_t ));

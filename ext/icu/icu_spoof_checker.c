@@ -115,31 +115,32 @@ VALUE spoof_checker_get_skeleton(VALUE self, VALUE str)
     StringValue(str);
     GET_SPOOF_CHECKER(this);
 
-    VALUE in = icu_uchar_string_alloc(rb_cICU_UCharString);
-    icu_uchar_string_replace(in, str);
+    VALUE in = icu_uchar_string_from_rb_str(str);
     VALUE out = icu_uchar_string_alloc(rb_cICU_UCharString);
-    icu_uchar_string_new_capa_enc(out, icu_uchar_string_len(in) * 2 + 1, ICU_RUBY_ENCODING_INDEX);
+    icu_uchar_string_new_capa_enc(out, icu_uchar_string_len(in) * 2 + RUBY_C_STRING_TERMINATOR_SIZE, ICU_RUBY_ENCODING_INDEX);
     int retried = FALSE;
     int32_t len_bytes;
     UErrorCode status = U_ZERO_ERROR;
     do {
-       len_bytes = uspoof_getSkeleton(this->checker,
-                                      0 /* deprecated */,
-                                      icu_uchar_string_ptr(in),
-                                      icu_uchar_string_len(in),
-                                      icu_uchar_string_ptr(out),
-                                      icu_uchar_string_capa(out),
-                                      &status);
-       if (!retried && status == U_BUFFER_OVERFLOW_ERROR) {
-           retried = TRUE;
-           icu_uchar_string_set_capa(out, len_bytes);
-           status = U_ZERO_ERROR;
-       } else if (U_FAILURE(status)) {
-           rb_raise(rb_eICU_Error, u_errorName(status));
-       } else { // retried == true && U_SUCCESS(status)
-           break;
-       }
+        // UTF-8 version does the conversion internally so we relies on UChar version here!
+        len_bytes = uspoof_getSkeleton(this->checker,
+                                       0 /* deprecated */,
+                                       icu_uchar_string_ptr(in),
+                                       icu_uchar_string_len(in),
+                                       icu_uchar_string_ptr(out),
+                                       icu_uchar_string_capa(out),
+                                       &status);
+        if (!retried && status == U_BUFFER_OVERFLOW_ERROR) {
+            retried = TRUE;
+            icu_uchar_string_set_capa(out, len_bytes + RUBY_C_STRING_TERMINATOR_SIZE);
+            status = U_ZERO_ERROR;
+        } else if (U_FAILURE(status)) {
+            rb_raise(rb_eICU_Error, u_errorName(status));
+        } else { // retried == true && U_SUCCESS(status)
+            break;
+        }
     } while (retried);
+    icu_uchar_string_set_len(out, len_bytes);
 
     return icu_uchar_string_to_rb_enc_str(out);
 }

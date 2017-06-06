@@ -5,7 +5,7 @@
                             TypedData_Get_Struct(self, icu_collator_data, &icu_collator_type, _data)
 
 VALUE rb_cICU_Collator;
-static ID ID_actual;
+static ID ID_valid;
 
 typedef struct {
     VALUE collator_instance;
@@ -61,16 +61,16 @@ VALUE collator_initialize(VALUE self, VALUE locale)
 VALUE collator_locale(int argc, VALUE* argv, VALUE self)
 {
     GET_COLLATOR(this);
-    VALUE actual;
+    VALUE valid;
 
-    rb_scan_args(argc, argv, "01", &actual);
-    if (NIL_P(actual)) {
-        actual = ID2SYM(ID_actual);
+    rb_scan_args(argc, argv, "01", &valid);
+    if (NIL_P(valid)) {
+        valid = ID2SYM(ID_valid);
     }
 
-    ULocDataLocaleType type = ULOC_ACTUAL_LOCALE;
-    if (SYM2ID(actual) != ID_actual) {
-        type = ULOC_VALID_LOCALE;
+    ULocDataLocaleType type = ULOC_VALID_LOCALE;
+    if (SYM2ID(valid) != ID_valid) {
+        type = ULOC_ACTUAL_LOCALE;
     }
     UErrorCode status = U_ZERO_ERROR;
     const char* locale_str = ucol_getLocaleByType(this->collator, type, &status);
@@ -114,15 +114,27 @@ VALUE collator_compare(VALUE self, VALUE str_a, VALUE str_b)
     return INT2NUM(result);
 }
 
+VALUE collator_rules(VALUE self)
+{
+    GET_COLLATOR(this);
+    int32_t len;
+    UChar* res = ucol_getRules(this->collator, &len);
+    VALUE str = icu_uchar_string_from_uchar_str(res, len);
+    VALUE ret = icu_uchar_string_to_rb_enc_str(str);
+    icu_uchar_string_clear_ptr(str);
+    return ret;
+}
+
 void init_icu_collator(void)
 {
-    ID_actual = rb_intern("actual");
+    ID_valid = rb_intern("valid");
 
     rb_cICU_Collator = rb_define_class_under(rb_mICU, "Collator", rb_cObject);
     rb_define_alloc_func(rb_cICU_Collator, collator_alloc);
     rb_define_method(rb_cICU_Collator, "initialize", collator_initialize, 1);
     rb_define_method(rb_cICU_Collator, "locale", collator_locale, -1);
     rb_define_method(rb_cICU_Collator, "compare", collator_compare, 2);
+    rb_define_method(rb_cICU_Collator, "rules", collator_rules, 0);
 }
 
 #undef GET_COLLATOR

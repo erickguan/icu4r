@@ -46,7 +46,7 @@ describe ICU::SpoofChecker do
 
   describe '.get_skeleton' do
     it 'can gets the skeleton representation' do
-      p subject.get_skeleton("𝔭𝒶ỿ𝕡𝕒ℓ")
+      expect(subject.get_skeleton("𝔭𝒶ỿ𝕡𝕒ℓ")).not_to be_empty
       expect(subject.get_skeleton("𝔭𝒶ỿ𝕡𝕒ℓ") == subject.get_skeleton("ρ⍺у𝓅𝒂ן")).to be_truthy
       expect(subject.get_skeleton("𝔭𝒶ỿ𝕡𝕒ℓ".encode("UTF-16")) == subject.get_skeleton("ρ⍺у𝓅𝒂ן")).to be_truthy
       expect(subject.get_skeleton("𝔭𝒶ỿ𝕡𝕒ℓ".encode("UTF-16")) == subject.get_skeleton("ρ⍺у𝓅𝒂ן".encode("UTF-16"))).to be_truthy

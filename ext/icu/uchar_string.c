@@ -1,7 +1,7 @@
 #include "icu.h"
 #include "unicode/ucnv.h"
 
-// #define ICU_UCHAR_STRING_DEBUG 1
+ #define ICU_UCHAR_STRING_DEBUG 1
 
 #define GET_STRING(_data) icu_uchar_string_data* _data; \
                           TypedData_Get_Struct(self, icu_uchar_string_data, &icu_uchar_string_type, _data)
@@ -194,56 +194,51 @@ void icu_uchar_string_set_capa_enc(VALUE self, int32_t capa, int enc_idx)
 VALUE icu_uchar_string_to_rb_enc_str(VALUE self)
 {
     GET_STRING(this);
-    char* dest;
-    int dest_capa;
+#ifdef ICU_UCHAR_STRING_DEBUG
+    printf("icu_uchar_string_to_rb_enc_str: %p %ld\n", self, this->len);
+#endif
     int dest_len;
+    int dest_capa = this->len * 2 + RUBY_C_STRING_TERMINATOR_SIZE;
+    char* dest = ALLOC_N(char, dest_capa);
+    int retried = FALSE;
     UErrorCode status = U_ZERO_ERROR;
-    if (this->converter == NULL) {
-        dest_capa = this->len * 2 + 4;
-        dest = ALLOC_N(char, dest_capa);
-        u_strToUTF8(dest, dest_capa, &dest_len, this->ptr, this->len, &status);
-        if (U_FAILURE(status)) {
-            ruby_xfree(dest);
-            rb_raise(rb_eICU_Error, u_errorName(status));
-        }
-        if (dest_len + RUBY_C_STRING_TERMINATOR_SIZE < dest_capa) { // overflow
-            REALLOC_N(dest, char, dest_len + RUBY_C_STRING_TERMINATOR_SIZE);
-            status = U_ZERO_ERROR;
-            u_strToUTF8(dest, dest_capa, &dest_len, this->ptr, this->len, &status);
-            if (U_FAILURE(status)) {
-                ruby_xfree(dest);
-                rb_raise(rb_eICU_Error, u_errorName(status));
-            }
-        }
-    } else {
-        dest_capa = this->len * 2 + 4;
-        dest = ALLOC_N(char, dest_capa);
-        int retried = FALSE;
-        do {
+    do {
+        if (this->converter == NULL) {
+            dest_len = u_strToUTF8(dest, dest_capa, &dest_len, this->ptr, this->len, &status);
+        } else {
             dest_len = ucnv_fromUChars(this->converter,
                                        dest,
                                        dest_capa,
                                        this->ptr,
                                        this->len,
                                        &status);
-            if (!retried && status == U_BUFFER_OVERFLOW_ERROR) {
-                retried = TRUE;
-                dest_capa = dest_len + RUBY_C_STRING_TERMINATOR_SIZE;
-                REALLOC_N(dest, char, dest_capa);
-                status = U_ZERO_ERROR;
-            } else if (U_FAILURE(status)) {
-                rb_raise(rb_eICU_Error, u_errorName(status));
-            } else { // retried == true && U_SUCCESS(status)
-                break;
-            }
-        } while (retried);
-    }
+        }
+        if (!retried && status == U_BUFFER_OVERFLOW_ERROR) {
+            retried = TRUE;
+            dest_capa = dest_len + RUBY_C_STRING_TERMINATOR_SIZE;
+            REALLOC_N(dest, char, dest_capa);
+            status = U_ZERO_ERROR;
+        } else if (U_FAILURE(status)) {
+            ruby_xfree(dest);
+            rb_raise(rb_eICU_Error, u_errorName(status));
+        } else { // retried == true && U_SUCCESS(status)
+            break;
+        }
+    } while (retried);
 
     VALUE rb_str = rb_enc_str_new(dest, dest_len, rb_enc_from_index(this->rb_enc_idx.to));
-    OBJ_TAINT(rb_str);
     ruby_xfree(dest);
+    OBJ_TAINT(rb_str);
     return rb_str;
 }
+
+VALUE icu_uchar_string_new_buf_capa_enc(int32_t capa, int enc)
+{
+    VALUE buf = icu_uchar_string_alloc(rb_cICU_UCharString);
+    icu_uchar_string_new_capa_enc(buf, capa, enc);
+    return buf;
+}
+
 
 void* icu_uchar_string_ptr(VALUE self)
 {
@@ -260,6 +255,9 @@ int32_t icu_uchar_string_len(VALUE self)
 void icu_uchar_string_set_len(VALUE self, int32_t len)
 {
     GET_STRING(this);
+#ifdef ICU_UCHAR_STRING_DEBUG
+    printf("icu_uchar_string_set_len: %p %ld\n", self, len);
+#endif
     this->len = len;
 }
 
