@@ -46,7 +46,7 @@ VALUE transliterator_initialize(int argc, VALUE* argv, VALUE self)
     VALUE id;
     VALUE direction;
     VALUE rules;
-    rb_scan_args(argc, argv, "12", &id, &direction, &rules);
+    rb_scan_args(argc, argv, "12", &id, &rules, &direction);
     StringValue(id);
     if (!NIL_P(rules)) {
         StringValue(rules);

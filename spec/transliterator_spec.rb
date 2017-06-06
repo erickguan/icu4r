@@ -30,4 +30,12 @@ describe ICU::Transliterator do
       expect(subject.available_ids).not_to be_empty
     end
   end
+
+  describe '#transliterate' do
+    subject { ICU::Transliterator }
+
+    it "returns the exact transliteration" do
+      expect(subject.transliterate("NFD; [:Nonspacing Mark:] Remove; NFC", "âêîôû")).to eq "aeiou"
+    end
+  end
 end
