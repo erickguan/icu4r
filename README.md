@@ -4,6 +4,8 @@ Alpha stage. Proof of concept.
 
 Ruby required 2.3.1.
 
+[![Build Status](https://travis-ci.org/fantasticfears/icu4r-next.svg?branch=master)](https://travis-ci.org/fantasticfears/icu4r-next)
+
 ## Design
 
 Right now, all arguments passed should be expected as Ruby `String`.
