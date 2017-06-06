@@ -101,15 +101,11 @@ VALUE collator_compare(VALUE self, VALUE str_a, VALUE str_b)
             rb_raise(rb_eICU_Error, u_errorName(status));
         }
     } else {
-        VALUE tmp_a = icu_uchar_string_alloc(rb_cICU_UCharString);
-        VALUE tmp_b = icu_uchar_string_alloc(rb_cICU_UCharString);
-        icu_uchar_string_replace(tmp_a, str_a);
-        icu_uchar_string_replace(tmp_b, str_b);
+        VALUE tmp_a = icu_ustring_from_rb_str(str_a);
+        VALUE tmp_b = icu_ustring_from_rb_str(str_b);
         result = ucol_strcoll(this->collator,
-                              icu_uchar_string_ptr(tmp_a),
-                              icu_uchar_string_len(tmp_a),
-                              icu_uchar_string_ptr(tmp_b),
-                              icu_uchar_string_len(tmp_b));
+                              icu_ustring_ptr(tmp_a), icu_ustring_len(tmp_a),
+                              icu_ustring_ptr(tmp_b), icu_ustring_len(tmp_b));
     }
 
     return INT2NUM(result);
@@ -120,9 +116,9 @@ VALUE collator_rules(VALUE self)
     GET_COLLATOR(this);
     int32_t len;
     UChar* res = ucol_getRules(this->collator, &len);
-    VALUE str = icu_uchar_string_from_uchar_str(res, len);
-    VALUE ret = icu_uchar_string_to_rb_enc_str(str);
-    icu_uchar_string_clear_ptr(str);
+    VALUE str = icu_ustring_from_uchar_str(res, len);
+    VALUE ret = icu_ustring_to_rb_enc_str(str);
+    icu_ustring_clear_ptr(str);
     return ret;
 }
 

@@ -97,14 +97,14 @@ VALUE spoof_checker_confusable(VALUE self, VALUE str_a, VALUE str_b)
     StringValue(str_b);
     GET_SPOOF_CHECKER(this);
 
-    VALUE tmp_a = icu_uchar_string_from_rb_str(str_a);
-    VALUE tmp_b = icu_uchar_string_from_rb_str(str_b);
+    VALUE tmp_a = icu_ustring_from_rb_str(str_a);
+    VALUE tmp_b = icu_ustring_from_rb_str(str_b);
     UErrorCode status = U_ZERO_ERROR;
     int32_t result = uspoof_areConfusable(this->checker,
-                                          icu_uchar_string_ptr(tmp_a),
-                                          icu_uchar_string_len(tmp_a),
-                                          icu_uchar_string_ptr(tmp_b),
-                                          icu_uchar_string_len(tmp_b),
+                                          icu_ustring_ptr(tmp_a),
+                                          icu_ustring_len(tmp_a),
+                                          icu_ustring_ptr(tmp_b),
+                                          icu_ustring_len(tmp_b),
                                           &status);
 
     return INT2NUM(result);
@@ -115,24 +115,20 @@ VALUE spoof_checker_get_skeleton(VALUE self, VALUE str)
     StringValue(str);
     GET_SPOOF_CHECKER(this);
 
-    VALUE in = icu_uchar_string_from_rb_str(str);
-    VALUE out = icu_uchar_string_alloc(rb_cICU_UCharString);
-    icu_uchar_string_new_capa_enc(out, icu_uchar_string_len(in) * 2 + RUBY_C_STRING_TERMINATOR_SIZE, ICU_RUBY_ENCODING_INDEX);
+    VALUE in = icu_ustring_from_rb_str(str);
+    VALUE out = icu_ustring_init_with_capa_enc(icu_ustring_capa(in), ICU_RUBY_ENCODING_INDEX);
     int retried = FALSE;
     int32_t len_bytes;
     UErrorCode status = U_ZERO_ERROR;
     do {
         // UTF-8 version does the conversion internally so we relies on UChar version here!
-        len_bytes = uspoof_getSkeleton(this->checker,
-                                       0 /* deprecated */,
-                                       icu_uchar_string_ptr(in),
-                                       icu_uchar_string_len(in),
-                                       icu_uchar_string_ptr(out),
-                                       icu_uchar_string_capa(out),
+        len_bytes = uspoof_getSkeleton(this->checker, 0 /* deprecated */,
+                                       icu_ustring_ptr(in), icu_ustring_len(in),
+                                       icu_ustring_ptr(out), icu_ustring_capa(out),
                                        &status);
         if (!retried && status == U_BUFFER_OVERFLOW_ERROR) {
             retried = TRUE;
-            icu_uchar_string_set_capa(out, len_bytes + RUBY_C_STRING_TERMINATOR_SIZE);
+            icu_ustring_resize(out, len_bytes + RUBY_C_STRING_TERMINATOR_SIZE);
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             rb_raise(rb_eICU_Error, u_errorName(status));
@@ -140,9 +136,8 @@ VALUE spoof_checker_get_skeleton(VALUE self, VALUE str)
             break;
         }
     } while (retried);
-    icu_uchar_string_set_len(out, len_bytes);
 
-    return icu_uchar_string_to_rb_enc_str(out);
+    return icu_ustring_to_rb_enc_str_with_len(out, len_bytes);
 }
 
 #define DEFINE_SPOOF_ENUM_CONST(_MODULE, _NAME) rb_define_const(_MODULE, #_NAME, INT2NUM(USPOOF_##_NAME))

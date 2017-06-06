@@ -78,22 +78,20 @@ VALUE normalizer_normalize(VALUE self, VALUE rb_str)
 {
     StringValue(rb_str);
     GET_NORMALIZER(this);
-    VALUE in = icu_uchar_string_from_rb_str(rb_str);
-    VALUE out = icu_uchar_string_new_buf_capa_enc(RSTRING_LEN(rb_str) * 2 + RUBY_C_STRING_TERMINATOR_SIZE, ICU_RUBY_ENCODING_INDEX);
+    VALUE in = icu_ustring_from_rb_str(rb_str);
+    VALUE out = icu_ustring_init_with_capa_enc(RSTRING_LEN(rb_str) * 2 + RUBY_C_STRING_TERMINATOR_SIZE, ICU_RUBY_ENCODING_INDEX);
 
     UErrorCode status = U_ZERO_ERROR;
     int retried = FALSE;
     int32_t len;
     do {
         len = unorm2_normalize(this->normalizer,
-                               icu_uchar_string_ptr(in),
-                               icu_uchar_string_len(in),
-                               icu_uchar_string_ptr(out),
-                               icu_uchar_string_capa(out),
+                               icu_ustring_ptr(in), icu_ustring_len(in),
+                               icu_ustring_ptr(out), icu_ustring_capa(out),
                                &status);
         if (!retried && status == U_BUFFER_OVERFLOW_ERROR) {
             retried = TRUE;
-            icu_uchar_string_set_capa(out, len + RUBY_C_STRING_TERMINATOR_SIZE);
+            icu_ustring_resize(out, len + RUBY_C_STRING_TERMINATOR_SIZE);
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             rb_raise(rb_eICU_Error, u_errorName(status));
@@ -102,7 +100,7 @@ VALUE normalizer_normalize(VALUE self, VALUE rb_str)
         }
     } while (retried);
 
-    return icu_uchar_string_to_rb_enc_str_with_len(out, len);
+    return icu_ustring_to_rb_enc_str_with_len(out, len);
 }
 
 void init_icu_normalizer(void)

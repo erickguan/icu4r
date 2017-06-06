@@ -57,22 +57,22 @@ VALUE transliterator_initialize(int argc, VALUE* argv, VALUE self)
         // TODO: handle invalid direction
     }
 
-    VALUE u_id = icu_uchar_string_from_rb_str(id);
+    VALUE u_id = icu_ustring_from_rb_str(id);
     UTransDirection u_direction = UTRANS_REVERSE;
     if (SYM2ID(direction) == ID_forward) {
         u_direction = UTRANS_FORWARD;
     }
     VALUE u_rules;
     if (!NIL_P(rules)) {
-        u_rules = icu_uchar_string_from_rb_str(rules);
+        u_rules = icu_ustring_from_rb_str(rules);
     }
     UParseError parser_error;
     UErrorCode status = U_ZERO_ERROR;
-    this->transliterator = utrans_openU(icu_uchar_string_ptr(u_id),
-                                        icu_uchar_string_len(u_id),
+    this->transliterator = utrans_openU(icu_ustring_ptr(u_id),
+                                        icu_ustring_len(u_id),
                                         u_direction,
-                                        NIL_P(rules) ? NULL : icu_uchar_string_ptr(u_rules),
-                                        NIL_P(rules) ? 0 : icu_uchar_string_len(u_rules),
+                                        NIL_P(rules) ? NULL : icu_ustring_ptr(u_rules),
+                                        NIL_P(rules) ? 0 : icu_ustring_len(u_rules),
                                         &parser_error, // TODO: should be possible to interpolate
                                         &status);
     if (U_FAILURE(status)) {
@@ -90,10 +90,10 @@ VALUE transliterator_transliterate(VALUE self, VALUE str)
     StringValue(str);
     GET_TRANSLITERATOR(this);
 
-    VALUE u_str = icu_uchar_string_from_rb_str(str);
+    VALUE u_str = icu_ustring_from_rb_str(str);
     UErrorCode status = U_ZERO_ERROR;
-    int32_t original_len = icu_uchar_string_len(u_str);
-    int32_t capa = icu_uchar_string_capa(u_str);
+    int32_t original_len = icu_ustring_len(u_str);
+    int32_t capa = icu_ustring_capa(u_str);
     int32_t len;
     int32_t limit;
     int retried = FALSE;
@@ -101,18 +101,15 @@ VALUE transliterator_transliterate(VALUE self, VALUE str)
         len = limit = original_len;
 
         utrans_transUChars(this->transliterator,
-                           icu_uchar_string_ptr(u_str),
-                           &len,
-                           capa,
-                           0 /* always start from the beginning */,
-                           &limit,
+                           icu_ustring_ptr(u_str), &len, capa,
+                           0 /* always start from the beginning */, &limit,
                            &status);
 
         if (!retried && status == U_BUFFER_OVERFLOW_ERROR) {
             retried = TRUE;
-            u_str = icu_uchar_string_from_rb_str(str);
+            u_str = icu_ustring_from_rb_str(str);
             capa = len + RUBY_C_STRING_TERMINATOR_SIZE;
-            icu_uchar_string_set_capa(u_str, capa);
+            icu_ustring_resize(u_str, capa);
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             rb_raise(rb_eICU_Error, u_errorName(status));
@@ -120,9 +117,8 @@ VALUE transliterator_transliterate(VALUE self, VALUE str)
             break;
         }
     } while (retried);
-    icu_uchar_string_set_len(u_str, len);
 
-    return icu_uchar_string_to_rb_enc_str(u_str);
+    return icu_ustring_to_rb_enc_str_with_len(u_str, len);
 }
 
 VALUE transliterator_unicode_id(VALUE self)
@@ -131,9 +127,9 @@ VALUE transliterator_unicode_id(VALUE self)
 
     int32_t result_len = 0;
     UChar* result = utrans_getUnicodeID(this->transliterator, &result_len);
-    VALUE str = icu_uchar_string_from_uchar_str(result, result_len);
-    VALUE rb_str = icu_uchar_string_to_rb_enc_str(str);
-    icu_uchar_string_clear_ptr(str);
+    VALUE str = icu_ustring_from_uchar_str(result, result_len);
+    VALUE rb_str = icu_ustring_to_rb_enc_str(str);
+    icu_ustring_clear_ptr(str);
     return rb_str;
 }
 
@@ -154,9 +150,9 @@ VALUE transliterator_available_ids(VALUE self)
             uenum_close(open_ids);
             rb_raise(rb_eICU_Error, u_errorName(status));
         }
-        VALUE s = icu_uchar_string_from_uchar_str(ptr, len);
-        rb_ary_push(result, icu_uchar_string_to_rb_enc_str(s));
-        icu_uchar_string_clear_ptr(s);
+        VALUE s = icu_ustring_from_uchar_str(ptr, len);
+        rb_ary_push(result, icu_ustring_to_rb_enc_str(s));
+        icu_ustring_clear_ptr(s);
         status = U_ZERO_ERROR;
     }
     uenum_close(open_ids);
