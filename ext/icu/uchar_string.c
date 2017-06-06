@@ -191,6 +191,12 @@ void icu_uchar_string_set_capa_enc(VALUE self, int32_t capa, int enc_idx)
     icu_uchar_string_set_capa(self, capa);
 }
 
+VALUE icu_uchar_string_to_rb_enc_str_with_len(VALUE self, int32_t len)
+{
+    icu_uchar_string_set_len(self, len);
+    return icu_uchar_string_to_rb_enc_str(self);
+}
+
 VALUE icu_uchar_string_to_rb_enc_str(VALUE self)
 {
     GET_STRING(this);
@@ -198,7 +204,7 @@ VALUE icu_uchar_string_to_rb_enc_str(VALUE self)
     printf("icu_uchar_string_to_rb_enc_str: %p %ld\n", self, this->len);
 #endif
     int dest_len;
-    int dest_capa = this->len * 2 + RUBY_C_STRING_TERMINATOR_SIZE;
+    int dest_capa = this->len + RUBY_C_STRING_TERMINATOR_SIZE;
     char* dest = ALLOC_N(char, dest_capa);
     int retried = FALSE;
     UErrorCode status = U_ZERO_ERROR;

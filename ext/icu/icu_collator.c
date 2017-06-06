@@ -40,6 +40,7 @@ VALUE collator_alloc(VALUE self)
 
 VALUE collator_initialize(VALUE self, VALUE locale)
 {
+    StringValue(locale);
     GET_COLLATOR(this);
 
     this->enc_idx = 0;

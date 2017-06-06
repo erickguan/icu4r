@@ -20,7 +20,7 @@ typedef struct {
 static void normalizer_free(void* _this)
 {
     icu_normalizer_data* this = _this;
-    if (this->customized == TRUE) {
+    if (this->customized == TRUE) { // If it's not constructed instance, shall not to be closed.
         unorm2_close(this->normalizer);
     }
 }
@@ -79,8 +79,7 @@ VALUE normalizer_normalize(VALUE self, VALUE rb_str)
     StringValue(rb_str);
     GET_NORMALIZER(this);
     VALUE in = icu_uchar_string_from_rb_str(rb_str);
-    VALUE out = icu_uchar_string_alloc(rb_cICU_UCharString);
-    icu_uchar_string_new_capa_enc(out, RSTRING_LEN(rb_str) * 2 + RUBY_C_STRING_TERMINATOR_SIZE, ICU_RUBY_ENCODING_INDEX);
+    VALUE out = icu_uchar_string_new_buf_capa_enc(RSTRING_LEN(rb_str) * 2 + RUBY_C_STRING_TERMINATOR_SIZE, ICU_RUBY_ENCODING_INDEX);
 
     UErrorCode status = U_ZERO_ERROR;
     int retried = FALSE;
@@ -102,9 +101,8 @@ VALUE normalizer_normalize(VALUE self, VALUE rb_str)
             break;
         }
     } while (retried);
-    icu_uchar_string_set_len(out, len);
 
-    return icu_uchar_string_to_rb_enc_str(out);
+    return icu_uchar_string_to_rb_enc_str_with_len(out, len);
 }
 
 void init_icu_normalizer(void)

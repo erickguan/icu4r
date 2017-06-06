@@ -19,6 +19,8 @@ extern VALUE rb_eICU_Error;
 extern VALUE rb_cICU_UCharString;
 extern VALUE rb_cICU_Collator;
 extern VALUE rb_cICU_Normalizer;
+extern VALUE rb_cICU_SpoofChecker;
+extern VALUE rb_cICU_Transliterator;
 
 /* Prototypes */
 void Init_icu                                          _(( void ));
@@ -42,6 +44,7 @@ void icu_uchar_string_set_capa_enc                     _(( VALUE, int32_t, int )
 void icu_uchar_string_new_capa                         _(( VALUE, int32_t ));
 void icu_uchar_string_set_capa                         _(( VALUE, int32_t ));
 void icu_uchar_string_set_enc                          _(( VALUE, int ));
+VALUE icu_uchar_string_to_rb_enc_str_with_len          _(( VALUE, int32_t ));
 VALUE icu_uchar_string_to_rb_enc_str                   _(( VALUE ));
 void* icu_uchar_string_ptr                             _(( VALUE ));
 int32_t icu_uchar_string_len                           _(( VALUE ));
