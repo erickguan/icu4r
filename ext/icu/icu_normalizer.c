@@ -12,16 +12,16 @@ static ID ID_compose;
 static ID ID_decompose;
 
 typedef struct {
-    VALUE normalizer_instance;
+    VALUE rb_instance;
     int customized;
-    UNormalizer2* normalizer;
+    UNormalizer2* service;
 } icu_normalizer_data;
 
 static void normalizer_free(void* _this)
 {
     icu_normalizer_data* this = _this;
     if (this->customized == TRUE) { // If it's not constructed instance, shall not to be closed.
-        unorm2_close(this->normalizer);
+        unorm2_close(this->service);
     }
 }
 
@@ -59,14 +59,14 @@ VALUE normalizer_initialize(int argc, VALUE* argv, VALUE self)
         mode = UNORM2_COMPOSE;
     }
     GET_NORMALIZER(this);
-    this->normalizer_instance = self;
+    this->rb_instance = self;
     this->customized = FALSE;
 
     UErrorCode status = U_ZERO_ERROR;
-    this->normalizer = unorm2_getInstance(NULL,
-                                          rb_id2name(SYM2ID(sym_name)),
-                                          mode,
-                                          &status);
+    this->service = unorm2_getInstance(NULL,
+                                       rb_id2name(SYM2ID(sym_name)),
+                                       mode,
+                                       &status);
     if (U_FAILURE(status)) {
         rb_raise(rb_eICU_Error, u_errorName(status));
     }
@@ -85,7 +85,7 @@ VALUE normalizer_normalize(VALUE self, VALUE rb_str)
     int retried = FALSE;
     int32_t len;
     do {
-        len = unorm2_normalize(this->normalizer,
+        len = unorm2_normalize(this->service,
                                icu_ustring_ptr(in), icu_ustring_len(in),
                                icu_ustring_ptr(out), icu_ustring_capa(out),
                                &status);

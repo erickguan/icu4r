@@ -8,15 +8,15 @@ VALUE rb_cICU_Collator;
 static ID ID_valid;
 
 typedef struct {
-    VALUE collator_instance;
+    VALUE rb_instance;
     int enc_idx; // TODO: reexamine the necessary for this?
-    UCollator* collator;
+    UCollator* service;
 } icu_collator_data;
 
 static void collator_free(void* _this)
 {
     icu_collator_data* this = _this;
-    ucol_close(this->collator);
+    ucol_close(this->service);
 }
 
 static size_t collator_memsize(const void* _)
@@ -44,9 +44,9 @@ VALUE collator_initialize(VALUE self, VALUE locale)
     GET_COLLATOR(this);
 
     this->enc_idx = 0;
-    this->collator_instance = self;
+    this->rb_instance = self;
     UErrorCode status = U_ZERO_ERROR;
-    this->collator = ucol_open(StringValueCStr(locale), &status);
+    this->service = ucol_open(StringValueCStr(locale), &status);
     if (U_FAILURE(status)) {
         rb_raise(rb_eICU_Error, u_errorName(status));
     }
@@ -74,7 +74,7 @@ VALUE collator_locale(int argc, VALUE* argv, VALUE self)
         type = ULOC_ACTUAL_LOCALE;
     }
     UErrorCode status = U_ZERO_ERROR;
-    const char* locale_str = ucol_getLocaleByType(this->collator, type, &status);
+    const char* locale_str = ucol_getLocaleByType(this->service, type, &status);
     if (U_FAILURE(status)) {
         rb_raise(rb_eICU_Error, u_errorName(status));
     }
@@ -91,10 +91,10 @@ VALUE collator_compare(VALUE self, VALUE str_a, VALUE str_b)
     if (icu_is_rb_str_as_utf_8(str_a) &&
         icu_is_rb_str_as_utf_8(str_b)) {
         UErrorCode status = U_ZERO_ERROR;
-        result = ucol_strcollUTF8(this->collator,
-                                  StringValuePtr(str_a),
+        result = ucol_strcollUTF8(this->service,
+                                  RSTRING_PTR(str_a),
                                   RSTRING_LEN(str_a),
-                                  StringValuePtr(str_b),
+                                  RSTRING_PTR(str_b),
                                   RSTRING_LEN(str_b),
                                   &status);
         if (U_FAILURE(status)) {
@@ -103,7 +103,7 @@ VALUE collator_compare(VALUE self, VALUE str_a, VALUE str_b)
     } else {
         VALUE tmp_a = icu_ustring_from_rb_str(str_a);
         VALUE tmp_b = icu_ustring_from_rb_str(str_b);
-        result = ucol_strcoll(this->collator,
+        result = ucol_strcoll(this->service,
                               icu_ustring_ptr(tmp_a), icu_ustring_len(tmp_a),
                               icu_ustring_ptr(tmp_b), icu_ustring_len(tmp_b));
     }
@@ -115,7 +115,7 @@ VALUE collator_rules(VALUE self)
 {
     GET_COLLATOR(this);
     int32_t len;
-    UChar* res = ucol_getRules(this->collator, &len);
+    UChar* res = ucol_getRules(this->service, &len);
     VALUE str = icu_ustring_from_uchar_str(res, len);
     VALUE ret = icu_ustring_to_rb_enc_str(str);
     icu_ustring_clear_ptr(str);

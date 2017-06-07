@@ -9,14 +9,14 @@ static ID ID_forward;
 static ID ID_reverse;
 
 typedef struct {
-    VALUE instance;
-    UTransliterator* transliterator;
+    VALUE rb_instance;
+    UTransliterator* service;
 } icu_transliterator_data;
 
 static void transliterator_free(void* _this)
 {
     icu_transliterator_data* this = _this;
-    utrans_close(this->transliterator);
+    utrans_close(this->service);
 }
 
 static size_t transliterator_memsize(const void* _)
@@ -40,8 +40,8 @@ VALUE transliterator_alloc(VALUE self)
 VALUE transliterator_initialize(int argc, VALUE* argv, VALUE self)
 {
     GET_TRANSLITERATOR(this);
-    this->instance = self;
-    this->transliterator = NULL;
+    this->rb_instance = self;
+    this->service = NULL;
 
     VALUE id;
     VALUE direction;
@@ -68,7 +68,7 @@ VALUE transliterator_initialize(int argc, VALUE* argv, VALUE self)
     }
     UParseError parser_error;
     UErrorCode status = U_ZERO_ERROR;
-    this->transliterator = utrans_openU(icu_ustring_ptr(u_id),
+    this->service = utrans_openU(icu_ustring_ptr(u_id),
                                         icu_ustring_len(u_id),
                                         u_direction,
                                         NIL_P(rules) ? NULL : icu_ustring_ptr(u_rules),
@@ -78,7 +78,7 @@ VALUE transliterator_initialize(int argc, VALUE* argv, VALUE self)
     if (U_FAILURE(status)) {
         rb_raise(rb_eICU_Error, u_errorName(status));
     }
-    if (this->transliterator == NULL) {
+    if (this->service == NULL) {
         rb_raise(rb_eICU_Error, "Transliterator can't be created.");
     }
 
@@ -100,7 +100,7 @@ VALUE transliterator_transliterate(VALUE self, VALUE str)
     do {
         len = limit = original_len;
 
-        utrans_transUChars(this->transliterator,
+        utrans_transUChars(this->service,
                            icu_ustring_ptr(u_str), &len, capa,
                            0 /* always start from the beginning */, &limit,
                            &status);
@@ -126,7 +126,7 @@ VALUE transliterator_unicode_id(VALUE self)
     GET_TRANSLITERATOR(this);
 
     int32_t result_len = 0;
-    UChar* result = utrans_getUnicodeID(this->transliterator, &result_len);
+    UChar* result = utrans_getUnicodeID(this->service, &result_len);
     VALUE str = icu_ustring_from_uchar_str(result, result_len);
     VALUE rb_str = icu_ustring_to_rb_enc_str(str);
     icu_ustring_clear_ptr(str);

@@ -9,14 +9,14 @@ VALUE rb_mChecks;
 VALUE rb_mRestrictionLevel;
 
 typedef struct {
-    VALUE instance;
-    USpoofChecker* checker;
+    VALUE rb_instance;
+    USpoofChecker* service;
 } icu_spoof_checker_data;
 
 static void spoof_checker_free(void* _this)
 {
     icu_spoof_checker_data* this = _this;
-    uspoof_close(this->checker);
+    uspoof_close(this->service);
 }
 
 static size_t spoof_checker_memsize(const void* _)
@@ -40,11 +40,11 @@ VALUE spoof_checker_alloc(VALUE self)
 VALUE spoof_checker_initialize(VALUE self)
 {
     GET_SPOOF_CHECKER(this);
-    this->instance = self;
-    this->checker = FALSE;
+    this->rb_instance = self;
+    this->service = FALSE;
 
     UErrorCode status = U_ZERO_ERROR;
-    this->checker = uspoof_open(&status);
+    this->service = uspoof_open(&status);
     if (U_FAILURE(status)) {
         rb_raise(rb_eICU_Error, u_errorName(status));
     }
@@ -55,7 +55,7 @@ VALUE spoof_checker_initialize(VALUE self)
 VALUE spoof_checker_get_restriction_level(VALUE self)
 {
     GET_SPOOF_CHECKER(this);
-    URestrictionLevel level = uspoof_getRestrictionLevel(this->checker);
+    URestrictionLevel level = uspoof_getRestrictionLevel(this->service);
 
     return INT2NUM(level);
 }
@@ -64,7 +64,7 @@ void spoof_checker_set_restriction_level(VALUE self, VALUE level)
 {
     GET_SPOOF_CHECKER(this);
 
-    uspoof_setRestrictionLevel(this->checker, NUM2INT(level));
+    uspoof_setRestrictionLevel(this->service, NUM2INT(level));
 }
 
 VALUE spoof_checker_get_checks(VALUE self)
@@ -72,7 +72,7 @@ VALUE spoof_checker_get_checks(VALUE self)
     GET_SPOOF_CHECKER(this);
 
     UErrorCode status = U_ZERO_ERROR;
-    int32_t check = uspoof_getChecks(this->checker, &status);
+    int32_t check = uspoof_getChecks(this->service, &status);
     if (U_FAILURE(status)) {
         rb_raise(rb_eICU_Error, u_errorName(status));
     }
@@ -85,7 +85,7 @@ void spoof_checker_set_checks(VALUE self, VALUE checks)
     GET_SPOOF_CHECKER(this);
 
     UErrorCode status = U_ZERO_ERROR;
-    uspoof_setChecks(this->checker, NUM2INT(checks), &status);
+    uspoof_setChecks(this->service, NUM2INT(checks), &status);
     if (U_FAILURE(status)) {
         rb_raise(rb_eICU_Error, u_errorName(status));
     }
@@ -100,7 +100,7 @@ VALUE spoof_checker_confusable(VALUE self, VALUE str_a, VALUE str_b)
     VALUE tmp_a = icu_ustring_from_rb_str(str_a);
     VALUE tmp_b = icu_ustring_from_rb_str(str_b);
     UErrorCode status = U_ZERO_ERROR;
-    int32_t result = uspoof_areConfusable(this->checker,
+    int32_t result = uspoof_areConfusable(this->service,
                                           icu_ustring_ptr(tmp_a),
                                           icu_ustring_len(tmp_a),
                                           icu_ustring_ptr(tmp_b),
@@ -122,7 +122,7 @@ VALUE spoof_checker_get_skeleton(VALUE self, VALUE str)
     UErrorCode status = U_ZERO_ERROR;
     do {
         // UTF-8 version does the conversion internally so we relies on UChar version here!
-        len_bytes = uspoof_getSkeleton(this->checker, 0 /* deprecated */,
+        len_bytes = uspoof_getSkeleton(this->service, 0 /* deprecated */,
                                        icu_ustring_ptr(in), icu_ustring_len(in),
                                        icu_ustring_ptr(out), icu_ustring_capa(out),
                                        &status);
