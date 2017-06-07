@@ -244,22 +244,38 @@ VALUE icu_ustring_to_rb_enc_str(VALUE self)
     return rb_str;
 }
 
-UChar* icu_ustring_ptr(VALUE self)
+
+inline UChar* icu_ustring_ptr_internal(const icu_ustring_data *this)
 {
-    GET_STRING(this);
     return this->ptr;
 }
 
-int32_t icu_ustring_len(VALUE self)
+inline UChar* icu_ustring_ptr(VALUE self)
 {
     GET_STRING(this);
+    return icu_ustring_ptr_internal(this);
+}
+
+inline int32_t icu_ustring_len_internal(const icu_ustring_data *this)
+{
     return this->len;
 }
 
-int32_t icu_ustring_capa(VALUE self)
+inline int32_t icu_ustring_len(VALUE self)
 {
     GET_STRING(this);
+    return icu_ustring_len_internal(this);
+}
+
+inline int32_t icu_ustring_capa_internal(const icu_ustring_data *this)
+{
     return this->capa;
+}
+
+inline int32_t icu_ustring_capa(VALUE self)
+{
+    GET_STRING(this);
+    return icu_ustring_capa_internal(this);
 }
 
 #undef GET_STRING

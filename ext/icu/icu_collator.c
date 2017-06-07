@@ -34,7 +34,6 @@ static const rb_data_type_t icu_collator_type = {
 VALUE collator_alloc(VALUE self)
 {
     icu_collator_data* this;
-
     return TypedData_Make_Struct(self, icu_collator_data, &icu_collator_type, this);
 }
 

@@ -52,35 +52,42 @@ VALUE spoof_checker_initialize(VALUE self)
     return self;
 }
 
-VALUE spoof_checker_get_restriction_level(VALUE self)
+static inline VALUE spoof_checker_get_restriction_level_internal(const icu_spoof_checker_data* this)
 {
-    GET_SPOOF_CHECKER(this);
     URestrictionLevel level = uspoof_getRestrictionLevel(this->service);
-
     return INT2NUM(level);
 }
 
-void spoof_checker_set_restriction_level(VALUE self, VALUE level)
+VALUE spoof_checker_get_restriction_level(VALUE self)
 {
     GET_SPOOF_CHECKER(this);
+    return spoof_checker_get_restriction_level_internal(this);
+}
 
+VALUE spoof_checker_set_restriction_level(VALUE self, VALUE level)
+{
+    GET_SPOOF_CHECKER(this);
     uspoof_setRestrictionLevel(this->service, NUM2INT(level));
+    return spoof_checker_get_restriction_level_internal(this);
+}
+
+static inline VALUE spoof_checker_get_checks_internal(const icu_spoof_checker_data* this)
+{
+    UErrorCode status = U_ZERO_ERROR;
+    int32_t checks = uspoof_getChecks(this->service, &status);
+    if (U_FAILURE(status)) {
+        rb_raise(rb_eICU_Error, u_errorName(status));
+    }
+    return INT2NUM(checks);
 }
 
 VALUE spoof_checker_get_checks(VALUE self)
 {
     GET_SPOOF_CHECKER(this);
-
-    UErrorCode status = U_ZERO_ERROR;
-    int32_t check = uspoof_getChecks(this->service, &status);
-    if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
-    }
-
-    return INT2NUM(check);
+    return spoof_checker_get_checks_internal(this);
 }
 
-void spoof_checker_set_checks(VALUE self, VALUE checks)
+VALUE spoof_checker_set_checks(VALUE self, VALUE checks)
 {
     GET_SPOOF_CHECKER(this);
 
@@ -89,6 +96,7 @@ void spoof_checker_set_checks(VALUE self, VALUE checks)
     if (U_FAILURE(status)) {
         rb_raise(rb_eICU_Error, u_errorName(status));
     }
+    return spoof_checker_get_checks_internal(this);
 }
 
 VALUE spoof_checker_confusable(VALUE self, VALUE str_a, VALUE str_b)

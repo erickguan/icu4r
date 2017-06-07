@@ -80,7 +80,7 @@ VALUE detector_initialize(int argc, VALUE* argv, VALUE self)
     return self;
 }
 
-static void detector_reset_text(icu_detector_data* this)
+static inline void detector_reset_text(const icu_detector_data* this)
 {
     UErrorCode status = U_ZERO_ERROR;
     ucsdet_setText(this->service, this->dummy_str, 0, &status);
@@ -90,7 +90,7 @@ static void detector_reset_text(icu_detector_data* this)
 }
 
 // rb_str must be a ruby String
-static void detector_set_text(icu_detector_data* this, VALUE rb_str)
+static inline void detector_set_text(const icu_detector_data* this, VALUE rb_str)
 {
     UErrorCode status = U_ZERO_ERROR;
     ucsdet_setText(this->service, RSTRING_PTR(rb_str), RSTRING_LEN(rb_str), &status);
@@ -141,16 +141,22 @@ VALUE detector_detect_all(VALUE self, VALUE str)
     return result;
 }
 
-VALUE detector_get_input_filter(VALUE self)
+static inline VALUE detector_get_input_filter_internal(const icu_detector_data* this)
 {
-    GET_DETECTOR(this);
     return ucsdet_isInputFilterEnabled(this->service) != 0 ? Qtrue : Qfalse;
 }
 
-void detector_set_input_filter(VALUE self, VALUE flag)
+VALUE detector_get_input_filter(VALUE self)
+{
+    GET_DETECTOR(this);
+    return detector_get_input_filter_internal(this);
+}
+
+VALUE detector_set_input_filter(VALUE self, VALUE flag)
 {
     GET_DETECTOR(this);
     ucsdet_enableInputFilter(this->service, flag == Qtrue ? TRUE : FALSE);
+    return detector_get_input_filter_internal(this);
 }
 
 VALUE detector_detectable_charsets(VALUE self)
