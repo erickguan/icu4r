@@ -10,6 +10,7 @@ void Init_icu(void)
     init_icu_normalizer();
     init_icu_spoof_checker();
     init_icu_transliterator();
+    init_icu_charset_detector();
 }
 
 /* vim: set expandtab sws=4 sw=4: */

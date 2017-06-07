@@ -11,6 +11,7 @@
   #undef UChar
 #endif
 #include "unicode/ustring.h"
+#include "unicode/uenum.h"
 
 /* Globals */
 
@@ -21,6 +22,8 @@ extern VALUE rb_cICU_Collator;
 extern VALUE rb_cICU_Normalizer;
 extern VALUE rb_cICU_SpoofChecker;
 extern VALUE rb_cICU_Transliterator;
+extern VALUE rb_cICU_CharsetDetector;
+extern VALUE rb_cICU_CharsetDetector_Match;
 
 /* Prototypes */
 void Init_icu                                          _(( void ));
@@ -29,11 +32,13 @@ void init_icu_collator                                 _(( void ));
 void init_icu_normalizer                               _(( void ));
 void init_icu_spoof_checker                            _(( void ));
 void init_icu_transliterator                           _(( void ));
+void init_icu_charset_detector                         _(( void ));
 
 int icu_is_rb_enc_idx_as_utf_8                         _(( int ));
 int icu_is_rb_str_as_utf_8                             _(( VALUE ));
 const char* icu_rb_str_enc_name                        _(( int ));
 int icu_rb_str_enc_idx                                 _(( VALUE ));
+VALUE icu_enum_to_rb_ary                               _(( UEnumeration*, UErrorCode, long ));
 
 VALUE icu_ustring_init_with_capa_enc                   _(( int32_t, int ));
 VALUE icu_ustring_from_rb_str                          _(( VALUE ));
