@@ -11,3 +11,4 @@ Makefile
 *.bundle
 *.so
 *.a
+ports/

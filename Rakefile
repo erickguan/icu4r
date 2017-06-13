@@ -28,11 +28,11 @@ RSpec::Core::RakeTask.new(:rcov) do |spec|
   spec.rcov = true
 end
 
-task :default => :spec
-
-gem = Gem::Specification.load(File.dirname(__FILE__) + '/icu4r-next.gemspec')
+gem = Gem::Specification.load(File.dirname(__FILE__) + '/icu.gemspec')
 Rake::ExtensionTask.new('icu', gem) do |ext|
   ext.lib_dir = File.join('lib', 'icu')
 end
 
 Rake::Task[:spec].prerequisites << :compile
+
+task :default => :spec

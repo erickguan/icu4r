@@ -1,3 +1,6 @@
+require 'rubygems'
+gem 'twitter_cldr' # for benchmark
+gem 'activesupport'
 require 'benchmark'
 require 'icu'
 require 'twitter_cldr'
