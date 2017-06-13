@@ -63,10 +63,10 @@ VALUE normalizer_initialize(int argc, VALUE* argv, VALUE self)
     this->customized = FALSE;
 
     UErrorCode status = U_ZERO_ERROR;
-    this->service = unorm2_getInstance(NULL,
-                                       rb_id2name(SYM2ID(sym_name)),
-                                       mode,
-                                       &status);
+    this->service = (UNormalizer2*)unorm2_getInstance(NULL,
+                                                      rb_id2name(SYM2ID(sym_name)),
+                                                      mode,
+                                                      &status);
     if (U_FAILURE(status)) {
         icu_rb_raise_icu_error(status);
     }

@@ -114,7 +114,7 @@ VALUE collator_rules(VALUE self)
 {
     GET_COLLATOR(this);
     int32_t len;
-    UChar* res = ucol_getRules(this->service, &len);
+    const UChar* res = ucol_getRules(this->service, &len);
     VALUE str = icu_ustring_from_uchar_str(res, len);
     VALUE ret = icu_ustring_to_rb_enc_str(str);
     icu_ustring_clear_ptr(str);

@@ -109,7 +109,7 @@ VALUE detector_detect(VALUE self, VALUE str)
 
     detector_set_text(this, str);
     UErrorCode status = U_ZERO_ERROR;
-    UCharsetMatch* match = ucsdet_detect(this->service, &status);
+    const UCharsetMatch* match = ucsdet_detect(this->service, &status);
     if (U_FAILURE(status)) {
         icu_rb_raise_icu_error(status);
     }
@@ -128,7 +128,7 @@ VALUE detector_detect_all(VALUE self, VALUE str)
 
     UErrorCode status = U_ZERO_ERROR;
     int32_t len_matches = 0;
-    UCharsetMatch** matches = ucsdet_detectAll(this->service, &len_matches, &status);
+    const UCharsetMatch** matches = ucsdet_detectAll(this->service, &len_matches, &status);
     if (U_FAILURE(status)) {
         icu_rb_raise_icu_error(status);
     }

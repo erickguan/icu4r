@@ -126,7 +126,7 @@ VALUE transliterator_unicode_id(VALUE self)
     GET_TRANSLITERATOR(this);
 
     int32_t result_len = 0;
-    UChar* result = utrans_getUnicodeID(this->service, &result_len);
+    const UChar* result = utrans_getUnicodeID(this->service, &result_len);
     VALUE str = icu_ustring_from_uchar_str(result, result_len);
     VALUE rb_str = icu_ustring_to_rb_enc_str(str);
     icu_ustring_clear_ptr(str);

@@ -7,6 +7,7 @@
 /* Ruby headers */
 #define ONIG_ESCAPE_UCHAR_COLLISION 1  // ruby.h defines UChar macro
 #include <ruby.h>
+#include <ruby/encoding.h>
 #ifdef UChar // fail-safe
   #undef UChar
 #endif
@@ -43,11 +44,11 @@ const char* icu_rb_str_enc_name                        _(( int ));
 VALUE rb_str_enc_to_ascii_as_utf8                      _(( VALUE ));
 int icu_rb_str_enc_idx                                 _(( VALUE ));
 VALUE icu_enum_to_rb_ary                               _(( UEnumeration*, UErrorCode, long ));
-extern inline void icu_rb_raise_icu_error              _(( UErrorCode ));
+extern void icu_rb_raise_icu_error                     _(( UErrorCode ));
 
 VALUE icu_ustring_init_with_capa_enc                   _(( int32_t, int ));
 VALUE icu_ustring_from_rb_str                          _(( VALUE ));
-VALUE icu_ustring_from_uchar_str                       _(( UChar*, int32_t ));
+VALUE icu_ustring_from_uchar_str                       _(( const UChar*, int32_t ));
 void icu_ustring_clear_ptr                             _(( VALUE ));
 void icu_ustring_resize                                _(( VALUE, int32_t ));
 void icu_ustring_set_enc                               _(( VALUE, int ));

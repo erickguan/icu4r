@@ -136,14 +136,14 @@ VALUE icu_ustring_from_rb_str(VALUE rb_str)
    - icu_ustring_from_uchar_str
    - icu_ustring_clear_ptr
 */
-VALUE icu_ustring_from_uchar_str(UChar* str, int32_t len)
+VALUE icu_ustring_from_uchar_str(const UChar* str, int32_t len)
 {
     if (len <= 0) {
         len = u_strlen(str);
     }
     VALUE u_str = icu_ustring_init_with_capa_enc(len + RUBY_C_STRING_TERMINATOR_SIZE, ICU_RUBY_ENCODING_INDEX);
     GET_STRING_VAL(u_str, this);
-    this->ptr = str;
+    this->ptr = (UChar*)str;
     this->len = len;
     return u_str;
 }

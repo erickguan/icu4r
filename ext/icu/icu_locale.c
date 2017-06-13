@@ -2,7 +2,6 @@
 #include "unicode/uloc.h"
 #include <string.h>
 #include <stdlib.h>
-#include <ruby/encoding.h>
 
 VALUE rb_cICU_Locale;
 static ID ID_ltr;
@@ -20,8 +19,8 @@ VALUE locale_initialize(VALUE self, VALUE id)
 
 inline static VALUE locale_new_from_cstr(const char* str)
 {
-    str = rb_str_new_cstr(str);
-    return locale_initialize(rb_obj_alloc(rb_cICU_Locale), rb_str_enc_to_ascii_as_utf8(str));
+    VALUE rb_str = rb_str_new_cstr(str);
+    return locale_initialize(rb_obj_alloc(rb_cICU_Locale), rb_str_enc_to_ascii_as_utf8(rb_str));
 }
 
 inline static VALUE char_buffer_to_rb_str(const char* buffer)
@@ -43,7 +42,7 @@ inline static void char_buffer_resize(const char* buffer, int32_t buf_size)
 
 inline static void char_buffer_free(const char* buffer)
 {
-    ruby_xfree(buffer);
+    ruby_xfree((void*)buffer);
 }
 
 VALUE locale_singleton_available(VALUE klass)

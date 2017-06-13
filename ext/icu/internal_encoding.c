@@ -1,5 +1,4 @@
 #include "icu.h"
-#include <ruby/encoding.h>
 
 static rb_encoding* ascii_enc;
 static rb_encoding* utf8_enc;

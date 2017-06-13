@@ -7,7 +7,7 @@ VALUE icu_enum_to_rb_ary(UEnumeration* icu_enum, UErrorCode status, long pre_all
         icu_rb_raise_icu_error(status);
     }
     VALUE result = rb_ary_new2(pre_allocated);
-    UChar* ptr = NULL;
+    const UChar* ptr = NULL;
     int32_t len = 0;
     status = U_ZERO_ERROR;
     while ((ptr = uenum_unext(icu_enum, &len, &status)) != NULL) {
