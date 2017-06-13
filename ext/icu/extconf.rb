@@ -184,7 +184,7 @@ If you are using Bundler, tell it to use the option:
                     }]
     recipe.configure_options += [
         "CPPFLAGS=-Wall",
-        "CFLAGS=-O2 -g -std=c99",
+        "CFLAGS=-O2 -g",
         "CXXFLAGS=-O2 -g",
         "LDFLAGS="
     ]
@@ -233,7 +233,7 @@ end
 have_library 'icuuc' or abort 'libicuuc missing'
 have_library 'icudata' or abort 'libicudata missing'
 
-$CFLAGS << ' -Wall -funroll-loops'
+$CFLAGS << ' -Wall -funroll-loops -std=c99'
 $CFLAGS << ' -Wextra -O0 -ggdb3' if ENV['DEBUG']
 
 create_makefile('icu/icu')
