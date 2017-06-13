@@ -39,17 +39,17 @@ static VALUE detector_populate_match_struct(const UCharsetMatch* match)
     UErrorCode status = U_ZERO_ERROR;
     int32_t confidence = ucsdet_getConfidence(match, &status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
     status = U_ZERO_ERROR;
     const char* name = ucsdet_getName(match, &status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
     status = U_ZERO_ERROR;
     const char* language = ucsdet_getLanguage(match, &status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
     return rb_struct_new(rb_cICU_CharsetDetector_Match,
                          rb_str_new_cstr(name),
@@ -72,7 +72,7 @@ VALUE detector_initialize(int argc, VALUE* argv, VALUE self)
     UErrorCode status = U_ZERO_ERROR;
     this->service = ucsdet_open(&status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
     this->dummy_str = ALLOC_N(char, 1);
     this->dummy_str[0] = '\0';
@@ -85,7 +85,7 @@ static inline void detector_reset_text(const icu_detector_data* this)
     UErrorCode status = U_ZERO_ERROR;
     ucsdet_setText(this->service, this->dummy_str, 0, &status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
 }
 
@@ -95,7 +95,7 @@ static inline void detector_set_text(const icu_detector_data* this, VALUE rb_str
     UErrorCode status = U_ZERO_ERROR;
     ucsdet_setText(this->service, RSTRING_PTR(rb_str), RSTRING_LENINT(rb_str), &status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
 }
 
@@ -111,7 +111,7 @@ VALUE detector_detect(VALUE self, VALUE str)
     UErrorCode status = U_ZERO_ERROR;
     UCharsetMatch* match = ucsdet_detect(this->service, &status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
 
     VALUE rb_match = detector_populate_match_struct(match);
@@ -130,7 +130,7 @@ VALUE detector_detect_all(VALUE self, VALUE str)
     int32_t len_matches = 0;
     UCharsetMatch** matches = ucsdet_detectAll(this->service, &len_matches, &status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
 
     VALUE result = rb_ary_new2(3); // pre-allocate some slots

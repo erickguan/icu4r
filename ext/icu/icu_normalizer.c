@@ -68,7 +68,7 @@ VALUE normalizer_initialize(int argc, VALUE* argv, VALUE self)
                                        mode,
                                        &status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
 
     return self;
@@ -94,7 +94,7 @@ VALUE normalizer_normalize(VALUE self, VALUE rb_str)
             icu_ustring_resize(out, len + RUBY_C_STRING_TERMINATOR_SIZE);
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }

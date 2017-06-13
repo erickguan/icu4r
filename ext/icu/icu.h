@@ -43,6 +43,7 @@ const char* icu_rb_str_enc_name                        _(( int ));
 VALUE rb_str_enc_to_ascii_as_utf8                      _(( VALUE ));
 int icu_rb_str_enc_idx                                 _(( VALUE ));
 VALUE icu_enum_to_rb_ary                               _(( UEnumeration*, UErrorCode, long ));
+extern inline void icu_rb_raise_icu_error              _(( UErrorCode ));
 
 VALUE icu_ustring_init_with_capa_enc                   _(( int32_t, int ));
 VALUE icu_ustring_from_rb_str                          _(( VALUE ));

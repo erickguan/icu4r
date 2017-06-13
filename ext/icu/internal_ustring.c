@@ -88,7 +88,7 @@ VALUE icu_ustring_from_rb_str(VALUE rb_str)
     } else {
         this->converter = ucnv_open(ICU_RB_STRING_ENC_NAME_IDX(this->rb_enc_idx), &status);
         if (U_FAILURE(status)) {
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         }
     }
 
@@ -118,7 +118,7 @@ VALUE icu_ustring_from_rb_str(VALUE rb_str)
             REALLOC_N(this->ptr, UChar, this->capa);
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -179,7 +179,7 @@ void icu_ustring_set_enc(VALUE self, int enc_idx)
         UErrorCode status = U_ZERO_ERROR;
         this->converter = ucnv_open(ICU_RB_STRING_ENC_NAME_IDX(this->rb_enc_idx), &status);
         if (U_FAILURE(status)) {
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         }
     }
 }
@@ -227,7 +227,7 @@ VALUE icu_ustring_to_rb_enc_str(VALUE self)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             ruby_xfree(dest);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }

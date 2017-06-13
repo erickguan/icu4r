@@ -4,7 +4,7 @@ VALUE icu_enum_to_rb_ary(UEnumeration* icu_enum, UErrorCode status, long pre_all
 {
     if (U_FAILURE(status)) {
         uenum_close(icu_enum);
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
     VALUE result = rb_ary_new2(pre_allocated);
     UChar* ptr = NULL;
@@ -13,7 +13,7 @@ VALUE icu_enum_to_rb_ary(UEnumeration* icu_enum, UErrorCode status, long pre_all
     while ((ptr = uenum_unext(icu_enum, &len, &status)) != NULL) {
         if (U_FAILURE(status)) {
             uenum_close(icu_enum);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         }
         VALUE s = icu_ustring_from_uchar_str(ptr, len);
         rb_ary_push(result, icu_ustring_to_rb_enc_str(s));
@@ -22,4 +22,9 @@ VALUE icu_enum_to_rb_ary(UEnumeration* icu_enum, UErrorCode status, long pre_all
     }
     uenum_close(icu_enum);
     return result;
+}
+
+extern inline void icu_rb_raise_icu_error(UErrorCode status)
+{
+    rb_raise(rb_eICU_Error, "ICU Error Code: %d, %s.", status, u_errorName(status));
 }

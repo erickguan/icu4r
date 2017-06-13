@@ -46,7 +46,7 @@ VALUE spoof_checker_initialize(VALUE self)
     UErrorCode status = U_ZERO_ERROR;
     this->service = uspoof_open(&status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
 
     return self;
@@ -76,7 +76,7 @@ static inline VALUE spoof_checker_get_checks_internal(const icu_spoof_checker_da
     UErrorCode status = U_ZERO_ERROR;
     int32_t checks = uspoof_getChecks(this->service, &status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
     return INT2NUM(checks);
 }
@@ -94,7 +94,7 @@ VALUE spoof_checker_set_checks(VALUE self, VALUE checks)
     UErrorCode status = U_ZERO_ERROR;
     uspoof_setChecks(this->service, NUM2INT(checks), &status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
     return spoof_checker_get_checks_internal(this);
 }
@@ -139,7 +139,7 @@ VALUE spoof_checker_get_skeleton(VALUE self, VALUE str)
             icu_ustring_resize(out, len_bytes + RUBY_C_STRING_TERMINATOR_SIZE);
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }

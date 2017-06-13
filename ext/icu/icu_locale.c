@@ -73,7 +73,7 @@ VALUE locale_singleton_set_default(VALUE klass, VALUE val)
     UErrorCode status = U_ZERO_ERROR;
     uloc_setDefault(RSTRING_PTR(val), &status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
     return locale_singleton_get_default_internal();
 }
@@ -99,7 +99,7 @@ VALUE locale_singleton_for_language_tag(VALUE klass, VALUE tag)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             char_buffer_free(buffer);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -132,7 +132,7 @@ VALUE locale_singleton_for_lcid(VALUE klass, VALUE lcid)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             char_buffer_free(buffer);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -195,7 +195,7 @@ VALUE locale_language_tag(int argc, VALUE* argv, VALUE self)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             char_buffer_free(buffer);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -238,7 +238,7 @@ VALUE locale_display_country(int argc, VALUE* argv, VALUE self)
             icu_ustring_resize(buffer, len + RUBY_C_STRING_TERMINATOR_SIZE);
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -271,7 +271,7 @@ VALUE locale_display_language(int argc, VALUE* argv, VALUE self)
             icu_ustring_resize(buffer, len + RUBY_C_STRING_TERMINATOR_SIZE);
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -303,7 +303,7 @@ VALUE locale_display_name(int argc, VALUE* argv, VALUE self)
             icu_ustring_resize(buffer, len + RUBY_C_STRING_TERMINATOR_SIZE);
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -335,7 +335,7 @@ VALUE locale_display_script(int argc, VALUE* argv, VALUE self)
             icu_ustring_resize(buffer, len + RUBY_C_STRING_TERMINATOR_SIZE);
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -367,7 +367,7 @@ VALUE locale_display_variant(int argc, VALUE* argv, VALUE self)
             icu_ustring_resize(buffer, len + RUBY_C_STRING_TERMINATOR_SIZE);
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -395,7 +395,7 @@ VALUE locale_name(VALUE self)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             char_buffer_free(buffer);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -427,7 +427,7 @@ VALUE locale_base_name(VALUE self)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             char_buffer_free(buffer);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -459,7 +459,7 @@ VALUE locale_canonical_name(VALUE self)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             char_buffer_free(buffer);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -491,7 +491,7 @@ VALUE locale_parent(VALUE self)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             char_buffer_free(buffer);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -537,7 +537,7 @@ VALUE locale_keyword(VALUE self, VALUE keyword)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             char_buffer_free(buffer);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -592,7 +592,7 @@ VALUE locale_with_keyword(VALUE self, VALUE keyword, VALUE value)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             char_buffer_free(buffer);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -656,7 +656,7 @@ VALUE locale_country(VALUE self)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             char_buffer_free(buffer);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -688,7 +688,7 @@ VALUE locale_language(VALUE self)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             char_buffer_free(buffer);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -720,7 +720,7 @@ VALUE locale_script(VALUE self)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             char_buffer_free(buffer);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -752,7 +752,7 @@ VALUE locale_variant(VALUE self)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             char_buffer_free(buffer);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -784,7 +784,7 @@ VALUE locale_with_likely_subtags(VALUE self)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             char_buffer_free(buffer);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
@@ -816,7 +816,7 @@ VALUE locale_with_minimized_subtags(VALUE self)
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
             char_buffer_free(buffer);
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }

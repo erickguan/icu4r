@@ -47,7 +47,7 @@ VALUE collator_initialize(VALUE self, VALUE locale)
     UErrorCode status = U_ZERO_ERROR;
     this->service = ucol_open(StringValueCStr(locale), &status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
 
     return self;
@@ -75,7 +75,7 @@ VALUE collator_locale(int argc, VALUE* argv, VALUE self)
     UErrorCode status = U_ZERO_ERROR;
     const char* locale_str = ucol_getLocaleByType(this->service, type, &status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
     return locale_str != NULL ? rb_str_new_cstr(locale_str) : Qnil;
 }
@@ -97,7 +97,7 @@ VALUE collator_compare(VALUE self, VALUE str_a, VALUE str_b)
                                   RSTRING_LENINT(str_b),
                                   &status);
         if (U_FAILURE(status)) {
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         }
     } else {
         VALUE tmp_a = icu_ustring_from_rb_str(str_a);

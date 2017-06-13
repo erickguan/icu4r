@@ -76,7 +76,7 @@ VALUE transliterator_initialize(int argc, VALUE* argv, VALUE self)
                                         &parser_error, // TODO: should be possible to interpolate
                                         &status);
     if (U_FAILURE(status)) {
-        rb_raise(rb_eICU_Error, u_errorName(status));
+        icu_rb_raise_icu_error(status);
     }
     if (this->service == NULL) {
         rb_raise(rb_eICU_Error, "Transliterator can't be created.");
@@ -112,7 +112,7 @@ VALUE transliterator_transliterate(VALUE self, VALUE str)
             icu_ustring_resize(u_str, capa);
             status = U_ZERO_ERROR;
         } else if (U_FAILURE(status)) {
-            rb_raise(rb_eICU_Error, u_errorName(status));
+            icu_rb_raise_icu_error(status);
         } else { // retried == true && U_SUCCESS(status)
             break;
         }
