@@ -4,5 +4,3 @@ rvm:
   - 2.3.4
   - 2.4.1
   - ruby-head
-before_script:
-  - sudo apt-get install -y libicu-dev libicu44
