@@ -1,29 +1,10 @@
 require 'mkmf'
 
 require 'rubygems'
-gem 'pkg-config', '~> 1.1.7'
-require 'pkg-config'
 
 ROOT = File.expand_path(File.join(File.dirname(__FILE__), '..', '..'))
 
 # Utility functions
-
-# def package_config(pkg, options={})
-#   package = pkg_config(pkg)
-#   return package if package
-#
-#   return nil unless PKGConfig.have_package(pkg)
-#
-#   cflags  = PKGConfig.cflags(pkg)
-#   ldflags = PKGConfig.libs_only_L(pkg)
-#   libs    = PKGConfig.libs_only_l(pkg)
-#
-#   Logging::message "PKGConfig package configuration for %s\n", pkg
-#   Logging::message "cflags: %s\nldflags: %s\nlibs: %s\n\n", cflags, ldflags, libs
-#
-#   [cflags, ldflags, libs]
-# end
-
 
 def using_system_libraries?
   arg_config('--use-system-libraries', !!ENV['ICU_USE_SYSTEM_LIBRARIES'])
