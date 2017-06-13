@@ -3,8 +3,6 @@
 require 'spec_helper'
 
 describe ICU::CharsetDetector do
-  subject { ICU::CharsetDetector.new }
-
   describe '.detect' do
     it "should recognize UTF-8" do
       m = subject.detect("æåø")

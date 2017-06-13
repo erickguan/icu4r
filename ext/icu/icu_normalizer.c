@@ -79,7 +79,7 @@ VALUE normalizer_normalize(VALUE self, VALUE rb_str)
     StringValue(rb_str);
     GET_NORMALIZER(this);
     VALUE in = icu_ustring_from_rb_str(rb_str);
-    VALUE out = icu_ustring_init_with_capa_enc(RSTRING_LEN(rb_str) * 2 + RUBY_C_STRING_TERMINATOR_SIZE, ICU_RUBY_ENCODING_INDEX);
+    VALUE out = icu_ustring_init_with_capa_enc(RSTRING_LENINT(rb_str) * 2 + RUBY_C_STRING_TERMINATOR_SIZE, ICU_RUBY_ENCODING_INDEX);
 
     UErrorCode status = U_ZERO_ERROR;
     int retried = FALSE;

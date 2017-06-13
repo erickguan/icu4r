@@ -92,9 +92,9 @@ VALUE collator_compare(VALUE self, VALUE str_a, VALUE str_b)
         UErrorCode status = U_ZERO_ERROR;
         result = ucol_strcollUTF8(this->service,
                                   RSTRING_PTR(str_a),
-                                  RSTRING_LEN(str_a),
+                                  RSTRING_LENINT(str_a),
                                   RSTRING_PTR(str_b),
-                                  RSTRING_LEN(str_b),
+                                  RSTRING_LENINT(str_b),
                                   &status);
         if (U_FAILURE(status)) {
             rb_raise(rb_eICU_Error, u_errorName(status));

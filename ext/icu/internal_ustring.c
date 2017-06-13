@@ -92,11 +92,11 @@ VALUE icu_ustring_from_rb_str(VALUE rb_str)
         }
     }
 
-    this->capa = RSTRING_LEN(rb_str) + RUBY_C_STRING_TERMINATOR_SIZE;
+    this->capa = RSTRING_LENINT(rb_str) + RUBY_C_STRING_TERMINATOR_SIZE;
     this->ptr = ALLOC_N(UChar, this->capa);
 
 #ifdef ICU_USTRING_DEBUG
-    printf("icu_ustring_from_rb_str: %p %p %p %p %ld\n", u_str, this->ptr, rb_str, StringValuePtr(rb_str), RSTRING_LEN(rb_str));
+    printf("icu_ustring_from_rb_str: %p %p %p %p %ld\n", u_str, this->ptr, rb_str, StringValuePtr(rb_str), RSTRING_LENINT(rb_str));
 #endif
 
     status = U_ZERO_ERROR;
@@ -105,11 +105,11 @@ VALUE icu_ustring_from_rb_str(VALUE rb_str)
     do {
         if (this->converter == NULL) {
             u_strFromUTF8(this->ptr, this->capa, &len,
-                          StringValuePtr(rb_str), RSTRING_LEN(rb_str),
+                          RSTRING_PTR(rb_str), RSTRING_LENINT(rb_str),
                           &status);
         } else {
             len = ucnv_toUChars(this->converter, this->ptr, this->capa,
-                                StringValuePtr(rb_str), RSTRING_LEN(rb_str),
+                                RSTRING_PTR(rb_str), RSTRING_LENINT(rb_str),
                                 &status);
         }
         if (!retried && status == U_BUFFER_OVERFLOW_ERROR) {
@@ -154,11 +154,11 @@ VALUE icu_ustring_from_uchar_str(UChar* str, int32_t len)
    - icu_ustring_from_rb_str
    - icu_ustring_from_uchar_str
 */
-VALUE icu_ustring_init_with_capa_enc(int32_t capa, int enc)
+VALUE icu_ustring_init_with_capa_enc(int32_t capa, int enc_idx)
 {
     VALUE buf = icu_ustring_alloc(rb_cICU_UString);
     GET_STRING_VAL(buf, this);
-    icu_ustring_set_enc(buf, enc);
+    icu_ustring_set_enc(buf, enc_idx);
     this->capa = capa;
     this->ptr = ALLOC_N(UChar, capa);
     return buf;

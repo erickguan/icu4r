@@ -75,7 +75,7 @@ VALUE detector_initialize(int argc, VALUE* argv, VALUE self)
         rb_raise(rb_eICU_Error, u_errorName(status));
     }
     this->dummy_str = ALLOC_N(char, 1);
-    this->dummy_str[0] = "\0";
+    this->dummy_str[0] = '\0';
 
     return self;
 }
@@ -93,7 +93,7 @@ static inline void detector_reset_text(const icu_detector_data* this)
 static inline void detector_set_text(const icu_detector_data* this, VALUE rb_str)
 {
     UErrorCode status = U_ZERO_ERROR;
-    ucsdet_setText(this->service, RSTRING_PTR(rb_str), RSTRING_LEN(rb_str), &status);
+    ucsdet_setText(this->service, RSTRING_PTR(rb_str), RSTRING_LENINT(rb_str), &status);
     if (U_FAILURE(status)) {
         rb_raise(rb_eICU_Error, u_errorName(status));
     }

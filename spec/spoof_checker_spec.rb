@@ -1,8 +1,6 @@
 require 'spec_helper'
 
 describe ICU::SpoofChecker do
-  subject { ICU::SpoofChecker.new }
-
   describe 'get and set checks' do
     it 'is successful' do
       subject.checks = ICU::SpoofChecker::Checks::CHAR_LIMIT | ICU::SpoofChecker::Checks::MIXED_NUMBERS
