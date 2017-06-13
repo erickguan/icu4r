@@ -8,7 +8,7 @@ Gem::Specification.new do |s|
   s.license     = "MIT"
   s.homepage    = "https://github.com/fantasticfears/icu-next"
   s.summary     = %q{A Unicode processing functions ruby gem, binding to ICU}
-  s.required_ruby_version = '>= 2.3.2'
+  s.required_ruby_version = '>= 2.2.7'
 
   s.extensions    = ["ext/icu/extconf.rb"]
   s.files         = `git ls-files`.split("\n")

@@ -184,7 +184,7 @@ If you are using Bundler, tell it to use the option:
                     }]
     recipe.configure_options += [
         "CPPFLAGS=-Wall",
-        "CFLAGS=-O2 -g",
+        "CFLAGS=-O2 -g -std=c99",
         "CXXFLAGS=-O2 -g",
         "LDFLAGS="
     ]
@@ -206,6 +206,7 @@ If you are using Bundler, tell it to use the option:
       libname = recipe.name[/\Alib(.+)\z/, 1]
       File.join(recipe.path, "bin", "#{libname}-config").tap do |config|
         # call config scripts explicit with 'sh' for compat with Windows
+        $CPPFLAGS = `sh #{config} --cflags`.strip << ' ' << $CPPFLAGS
         $CPPFLAGS = `sh #{config} --cflags`.strip << ' ' << $CPPFLAGS
         `sh #{config} --ldflags`.strip.shellsplit.each do |arg|
           case arg
