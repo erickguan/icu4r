@@ -23,28 +23,6 @@ inline static VALUE locale_new_from_cstr(const char* str)
     return locale_initialize(rb_obj_alloc(rb_cICU_Locale), rb_str_enc_to_ascii_as_utf8(rb_str));
 }
 
-inline static VALUE char_buffer_to_rb_str(const char* buffer)
-{
-    VALUE str = rb_str_new_cstr(buffer);
-    return rb_str_export_to_enc(str, rb_enc_from_index(ICU_RUBY_ENCODING_INDEX));
-}
-
-inline static char* char_buffer_new(int32_t buf_size)
-{
-    char* buffer = ALLOC_N(char, buf_size);
-    return buffer;
-}
-
-inline static void char_buffer_resize(const char* buffer, int32_t buf_size)
-{
-    REALLOC_N(buffer, char, buf_size);
-}
-
-inline static void char_buffer_free(const char* buffer)
-{
-    ruby_xfree((void*)buffer);
-}
-
 VALUE locale_singleton_available(VALUE klass)
 {
     int32_t len = uloc_countAvailable();

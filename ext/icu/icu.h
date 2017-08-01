@@ -45,6 +45,8 @@ VALUE rb_str_enc_to_ascii_as_utf8                      _(( VALUE ));
 int icu_rb_str_enc_idx                                 _(( VALUE ));
 VALUE icu_enum_to_rb_ary                               _(( UEnumeration*, UErrorCode, long ));
 extern void icu_rb_raise_icu_error                     _(( UErrorCode ));
+extern void icu_rb_raise_icu_parse_error               _(( const UParseError* ));
+extern void icu_rb_raise_icu_invalid_parameter         _(( const char*, const char* ));
 
 VALUE icu_ustring_init_with_capa_enc                   _(( int32_t, int ));
 VALUE icu_ustring_from_rb_str                          _(( VALUE ));
@@ -57,6 +59,10 @@ VALUE icu_ustring_to_rb_enc_str                        _(( VALUE ));
 UChar* icu_ustring_ptr                                 _(( VALUE ));
 int32_t icu_ustring_len                                _(( VALUE ));
 int32_t icu_ustring_capa                               _(( VALUE ));
+VALUE char_buffer_to_rb_str                            _(( const char* ));
+char* char_buffer_new                                  _(( int32_t ));
+void char_buffer_resize                                _(( const char*, int32_t ));
+void char_buffer_free                                  _(( const char* ));
 
 /* Constants */
 #define RUBY_C_STRING_TERMINATOR_SIZE 1

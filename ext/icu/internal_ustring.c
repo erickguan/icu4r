@@ -278,5 +278,27 @@ inline int32_t icu_ustring_capa(VALUE self)
     return icu_ustring_capa_internal(this);
 }
 
+inline VALUE char_buffer_to_rb_str(const char* buffer)
+{
+    VALUE str = rb_str_new_cstr(buffer);
+    return rb_str_export_to_enc(str, rb_enc_from_index(ICU_RUBY_ENCODING_INDEX));
+}
+
+inline char* char_buffer_new(int32_t buf_size)
+{
+    char* buffer = ALLOC_N(char, buf_size);
+    return buffer;
+}
+
+inline void char_buffer_resize(const char* buffer, int32_t buf_size)
+{
+    REALLOC_N(buffer, char, buf_size);
+}
+
+inline void char_buffer_free(const char* buffer)
+{
+    ruby_xfree((void*)buffer);
+}
+
 #undef GET_STRING
 #undef GET_STRING_VAL

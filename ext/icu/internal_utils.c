@@ -1,4 +1,5 @@
 #include "icu.h"
+#include "unicode/parseerr.h"
 
 VALUE icu_enum_to_rb_ary(UEnumeration* icu_enum, UErrorCode status, long pre_allocated)
 {
@@ -27,4 +28,24 @@ VALUE icu_enum_to_rb_ary(UEnumeration* icu_enum, UErrorCode status, long pre_all
 extern inline void icu_rb_raise_icu_error(UErrorCode status)
 {
     rb_raise(rb_eICU_Error, "ICU Error Code: %d, %s.", status, u_errorName(status));
+}
+
+
+extern inline void
+icu_rb_raise_icu_invalid_parameter(const char* parameter,
+                                   const char* error_message)
+{
+    rb_raise(rb_eICU_InvalidParameterError,
+             "ICU Invalid parameter: %s, %s.",
+             parameter,
+             error_message);
+}
+
+
+extern inline void icu_rb_raise_icu_parse_error(const UParseError* error)
+{
+    rb_raise(rb_eICU_InvalidParameterError,
+             "ICU Parse Error: Line %d, offset %d.",
+             error->line,
+             error->offset);
 }
