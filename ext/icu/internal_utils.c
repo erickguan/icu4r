@@ -1,5 +1,4 @@
 #include "icu.h"
-#include "unicode/parseerr.h"
 
 VALUE icu_enum_to_rb_ary(UEnumeration* icu_enum, UErrorCode status, long pre_allocated)
 {

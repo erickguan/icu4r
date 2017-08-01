@@ -13,11 +13,13 @@
 #endif
 #include "unicode/ustring.h"
 #include "unicode/uenum.h"
+#include "unicode/parseerr.h"
 
 /* Globals */
 
 extern VALUE rb_mICU;
 extern VALUE rb_eICU_Error;
+extern VALUE rb_eICU_InvalidParameterError;
 extern VALUE rb_cICU_UString;
 extern VALUE rb_cICU_Collator;
 extern VALUE rb_cICU_Normalizer;

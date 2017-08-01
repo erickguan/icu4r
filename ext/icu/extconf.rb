@@ -10,21 +10,11 @@ def using_system_libraries?
   arg_config('--use-system-libraries', !!ENV['ICU_USE_SYSTEM_LIBRARIES'])
 end
 
-# From Nokogiri:
-# When using rake-compiler-dock on Windows, the underlying Virtualbox shared
-# folders don't support symlinks, but libiconv expects it for a build on
-# Linux. We work around this limitation by using the temp dir for cooking.
-def chdir_for_build
-  build_dir = ENV['RCD_HOST_RUBY_PLATFORM'].to_s =~ /mingw|mswin|cygwin/ ? '/tmp' : '.'
-  Dir.chdir(build_dir) do
-    yield
-  end
-end
-
 # Building with system ICU
 
 if using_system_libraries?
-  message "Building ICU using system libraries.\n"
+  message "Building ICU using system libraries.\n Not supported yet, PR welcome!"
+  exit 1
 
   unless dir_config('icu').any?
     base = if !`which brew`.empty?
@@ -49,6 +39,9 @@ install by brew install icu4c or apt-get install libicu-dev)
 
     exit(1)
   end
+
+  have_library 'icuuc' or abort 'libicuuc missing'
+  have_library 'icudata' or abort 'libicudata missing'
 else
   message "Building ICU from source.\n"
 
@@ -75,7 +68,7 @@ else
       yield self
 
       env = Hash.new do |hash, key|
-        hash[key] = "#{ENV[key]}"  # (ENV[key].dup rescue '')
+        hash[key] = ENV[key].dup.to_s rescue ''
       end
 
       self.configure_options.flatten!
@@ -92,10 +85,14 @@ else
 
       if static_p
         self.configure_options += [
-            "--disable-shared",
+            "--enable-shared",
             "--enable-static",
+            "--disable-renaming"
         ]
         env['CFLAGS'] = "-fPIC #{env['CFLAGS']}"
+        env['CPPFLAGS'] = "-DU_CHARSET_IS_UTF8=1 -DU_USING_ICU_NAMESPACE=0 -DU_STATIC_IMPLEMENTATION #{env['CPPFLAGS']}"
+        env['CXXFLAGS'] = "-fPIC -fno-exceptions #{env['CXXFLAGS']}"
+        env['LDFLAGS'] = "-fPIC -static-libstdc++ #{env['CFLAGS']}"
       else
         self.configure_options += [
             "--enable-shared",
@@ -111,9 +108,7 @@ else
         end
       end
 
-      self.configure_options += env.map do |key, value|
-        "#{key}=#{value}"
-      end
+      @env = env
     end
 
     def cook
@@ -149,6 +144,19 @@ If you are using Bundler, tell it to use the option:
       super
     end
 
+    def configure
+      # run as recommend, basically set up compiler and flags
+      platform = if RUBY_PLATFORM =~ /mingw|mswin/
+                   'MSYS/MSVC'
+                 elsif RUBY_PLATFORM =~ /darwin/
+                   'MacOSX'
+                 else
+                   'Linux'
+                 end  # double quotes are significant.
+      execute('ICU Configure', [@env] + ['./runConfigureICU', platform] + computed_options)
+      super
+    end
+
     def work_path
       File.join(Dir.glob("#{tmp_path}/*").find { |d| File.directory?(d) }, 'source')
     end
@@ -160,10 +168,10 @@ If you are using Bundler, tell it to use the option:
   static_p = enable_config('static', true) or
       message "Static linking is disabled.\n"
   recipes = []
-  
+
   libicu_recipe = ICURecipe.new("libicu", "59.1", static_p) do |recipe|
     recipe.files = [{
-                        url: "http://download.icu-project.org/files/icu4c/59.1/icu4c-59_1-src.tgz",
+                        url: "https://downloads.sourceforge.net/project/icu/ICU4C/59.1/icu4c-59_1-src.tgz?r=&ts=1501595646",
                         sha256: "7132fdaf9379429d004005217f10e00b7d2319d0fea22bdfddef8991c45b75fe"
                         # gpg: Signature made Fri Apr 14 21:00:23 2017 CEST using RSA key ID 4FB419E3
                         # gpg: requesting key 4FB419E3 from hkps server hkps.pool.sks-keyservers.net
@@ -182,12 +190,6 @@ If you are using Bundler, tell it to use the option:
                         # gpg:          There is no indication that the signature belongs to the owner.
                         # Primary key fingerprint: BA90 283A 60D6 7BA0 DD91  0A89 3932 080F 4FB4 19E3
                     }]
-    recipe.configure_options += [
-        "CPPFLAGS=-Wall",
-        "CFLAGS=-O2 -g",
-        "CXXFLAGS=-O2 -g",
-        "LDFLAGS="
-    ]
   end
   recipes.push libicu_recipe
 
@@ -202,38 +204,39 @@ If you are using Bundler, tell it to use the option:
   end
 
   $libs = $libs.shellsplit.tap do |libs|
-    recipes.each do |recipe|
+    [libicu_recipe].each do |recipe|
       libname = recipe.name[/\Alib(.+)\z/, 1]
+      # TODO: build with pkg-config
+      # Should do like PKG_CONFIG_PATH=/root/icu4r/ports/x86_64-pc-linux-gnu/libicu/59.1/lib/pkgconfig/ pkg-config --static  icu-uc
       File.join(recipe.path, "bin", "#{libname}-config").tap do |config|
         # call config scripts explicit with 'sh' for compat with Windows
-        $CPPFLAGS = `sh #{config} --cflags`.strip << ' ' << $CPPFLAGS
-        $CPPFLAGS = `sh #{config} --cflags`.strip << ' ' << $CPPFLAGS
+        $CPPFLAGS = '-DU_DISABLE_RENAMING=1 -DU_CHARSET_IS_UTF8=1 -DU_USING_ICU_NAMESPACE=0 -DU_STATIC_IMPLEMENTATION' << ' ' << $CPPFLAGS
         `sh #{config} --ldflags`.strip.shellsplit.each do |arg|
           case arg
-          when /\A-L(.+)\z/
-            # Prioritize ports' directories
-            if $1.start_with?(ROOT + '/')
-              $LIBPATH = [$1] | $LIBPATH
+            when /\A-L(.+)\z/
+              # Prioritize ports' directories
+              if $1.start_with?(ROOT + '/')
+                $LIBPATH = [$1] | $LIBPATH
+              else
+                $LIBPATH = $LIBPATH | [$1]
+              end
+            when /\A-l./
+              libs.unshift(arg)
             else
-              $LIBPATH = $LIBPATH | [$1]
-            end
-          when /\A-l./
-            libs.unshift(arg)
-          else
-            $LDFLAGS << ' ' << arg.shellescape
+              $LDFLAGS << ' ' << arg.shellescape
           end
         end
         $INCFLAGS = `sh #{config} --cppflags-searchpath `.strip << ' ' << $INCFLAGS
+        $CFLAGS = '-DU_DISABLE_RENAMING=1 -DU_CHARSET_IS_UTF8=1 -DU_USING_ICU_NAMESPACE=0 -DU_STATIC_IMPLEMENTATION' << ' ' << `sh #{config} --cflags`.strip << $CFLAGS
       end
     end
   end.shelljoin
 
 end
 
-have_library 'icuuc' or abort 'libicuuc missing'
-have_library 'icudata' or abort 'libicudata missing'
-
-$CFLAGS << ' -Wall -funroll-loops -std=c99'
+$CFLAGS << ' -O3 -funroll-loops -std=c99'
 $CFLAGS << ' -Wextra -O0 -ggdb3' if ENV['DEBUG']
+
+puts $CFLAGS, $CPPFLAGS, $CXXFLAGS
 
 create_makefile('icu/icu')

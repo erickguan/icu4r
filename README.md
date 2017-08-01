@@ -4,7 +4,7 @@ Beta stage.
 
 Ruby required 2.3.1.
 
-[![Build Status](https://travis-ci.org/fantasticfears/icu4r-next.svg?branch=master)](https://travis-ci.org/fantasticfears/icu4r-next)
+[![Build Status](https://travis-ci.org/fantasticfears/icu4r.svg?branch=master)](https://travis-ci.org/fantasticfears/icu4r)
 
 ## Design
 
@@ -53,11 +53,13 @@ returns the c struct encoding and ruby encoding object accordingly.
 
 ## Contributing
 
-Feel free to leave a message.
+Feel free to fork and submit a pull request.
 
 ### TODO
 
 - Support Ruby 2.2+. Rails 5 requires Ruby 2.2.2.
+- Merge ffi-icu. [This branch](https://github.com/fantasticfears/icu4r/tree/feature-number-formatter) can be a start
+- Merge some resources from [this branch (old `icu` gem)](https://github.com/fantasticfears/icu4r/tree/old-icu4r).
 - port time/number_formatting module from [ffi-icu](https://github.com/fantasticfears/ffi-icu).
 - binary distribution of ICU & system library support
 - documentation
