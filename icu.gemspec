@@ -6,7 +6,7 @@ Gem::Specification.new do |s|
   s.authors     = ["Erick Guan"]
   s.email       = ["fantasticfears@gmail.com"]
   s.license     = "MIT"
-  s.homepage    = "https://github.com/fantasticfears/icu-next"
+  s.homepage    = "https://github.com/fantasticfears/icu4r"
   s.summary     = %q{A Unicode processing functions ruby gem, binding to ICU}
   s.required_ruby_version = '>= 2.2.7'
 
