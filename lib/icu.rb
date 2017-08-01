@@ -1,6 +1,0 @@
-require 'icu/icu'
-require 'icu/version'
-require 'icu/collator'
-require 'icu/transliterator'
-require 'icu/charset_detector'
-require 'icu/locale'
