@@ -85,7 +85,7 @@ else
 
       if static_p
         self.configure_options += [
-            "--enable-shared",
+            "--disable-shared",
             "--enable-static",
             "--disable-renaming"
         ]
@@ -237,6 +237,6 @@ end
 $CFLAGS << ' -O3 -funroll-loops -std=c99'
 $CFLAGS << ' -Wextra -O0 -ggdb3' if ENV['DEBUG']
 
-puts $CFLAGS, $CPPFLAGS, $CXXFLAGS
+puts $CFLAGS, $LIBPATH, $CPPFLAGS, $CXXFLAGS
 
 create_makefile('icu/icu')

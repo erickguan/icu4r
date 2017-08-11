@@ -148,40 +148,89 @@ VALUE spoof_checker_get_skeleton(VALUE self, VALUE str)
     return icu_ustring_to_rb_enc_str_with_len(out, len_bytes);
 }
 
-#define DEFINE_SPOOF_ENUM_CONST(_MODULE, _NAME) rb_define_const(_MODULE, #_NAME, INT2NUM(USPOOF_##_NAME))
+VALUE spoof_checker_check(VALUE self, VALUE rb_str)
+{
+    StringValue(rb_str);
+    GET_SPOOF_CHECKER(this);
+
+    UErrorCode status = U_ZERO_ERROR;
+    int32_t result = 0;
+
+    if (icu_is_rb_str_as_utf_8(rb_str)) {
+       result = uspoof_check2UTF8(this->service,
+                                  RSTRING_PTR(rb_str),
+                                  RSTRING_LENINT(rb_str),
+                                  NULL,
+                                  &status);
+    } else {
+        VALUE in = icu_ustring_from_rb_str(rb_str);
+        result = uspoof_check2(this->service,
+                               icu_ustring_ptr(in),
+                               icu_ustring_len(in),
+                               NULL,
+                               &status);
+    }
+    if (U_FAILURE(status)) {
+        icu_rb_raise_icu_error(status);
+    }
+
+    return INT2NUM(result);
+}
+
+static const char* k_checks_name = "@checks";
+
+VALUE spoof_checker_available_checks(VALUE klass)
+{
+    VALUE iv = rb_iv_get(klass, k_checks_name);
+    if (NIL_P(iv)) {
+        iv = rb_hash_new();
+        rb_hash_aset(iv, ID2SYM(rb_intern("single_script_confusable")), INT2NUM(USPOOF_SINGLE_SCRIPT_CONFUSABLE));
+        rb_hash_aset(iv, ID2SYM(rb_intern("mixed_script_confusable")), INT2NUM(USPOOF_MIXED_SCRIPT_CONFUSABLE));
+        rb_hash_aset(iv, ID2SYM(rb_intern("whole_script_confusable")), INT2NUM(USPOOF_WHOLE_SCRIPT_CONFUSABLE));
+        rb_hash_aset(iv, ID2SYM(rb_intern("confusable")), INT2NUM(USPOOF_CONFUSABLE));
+        // USPOOF_ANY_CASE deprecated in 58
+        rb_hash_aset(iv, ID2SYM(rb_intern("restriction_level")), INT2NUM(USPOOF_RESTRICTION_LEVEL));
+        // USPOOF_SINGLE_SCRIPT deprecated in 51
+        rb_hash_aset(iv, ID2SYM(rb_intern("invisible")), INT2NUM(USPOOF_INVISIBLE));
+        rb_hash_aset(iv, ID2SYM(rb_intern("char_limit")), INT2NUM(USPOOF_CHAR_LIMIT));
+        rb_hash_aset(iv, ID2SYM(rb_intern("mixed_numbers")), INT2NUM(USPOOF_MIXED_NUMBERS));
+        rb_hash_aset(iv, ID2SYM(rb_intern("all_checks")), INT2NUM(USPOOF_ALL_CHECKS));
+        rb_hash_aset(iv, ID2SYM(rb_intern("aux_info")), INT2NUM(USPOOF_AUX_INFO));
+        rb_iv_set(klass, k_checks_name, iv);
+    }
+    return iv;
+}
+
+static const char* k_restriction_level_name = "@restriction_levels";
+
+VALUE spoof_checker_available_restriction_levels(VALUE klass)
+{
+    VALUE iv = rb_iv_get(klass, k_restriction_level_name);
+    if (NIL_P(iv)) {
+        iv = rb_hash_new();
+        rb_hash_aset(iv, ID2SYM(rb_intern("ascii")), INT2NUM(USPOOF_ASCII));
+        rb_hash_aset(iv, ID2SYM(rb_intern("single_script_restrictive")), INT2NUM(USPOOF_SINGLE_SCRIPT_RESTRICTIVE));
+        rb_hash_aset(iv, ID2SYM(rb_intern("highly_restrictive")), INT2NUM(USPOOF_HIGHLY_RESTRICTIVE));
+        rb_hash_aset(iv, ID2SYM(rb_intern("moderately_restrictive")), INT2NUM(USPOOF_MODERATELY_RESTRICTIVE));
+        rb_hash_aset(iv, ID2SYM(rb_intern("minimally_restrictive")), INT2NUM(USPOOF_MINIMALLY_RESTRICTIVE));
+        rb_hash_aset(iv, ID2SYM(rb_intern("unrestrictive")), INT2NUM(USPOOF_UNRESTRICTIVE));
+        rb_hash_aset(iv, ID2SYM(rb_intern("restriction_level_mask")), INT2NUM(USPOOF_RESTRICTION_LEVEL_MASK));
+        rb_hash_aset(iv, ID2SYM(rb_intern("undefined_restrictive")), INT2NUM(USPOOF_UNDEFINED_RESTRICTIVE));
+        rb_iv_set(klass, k_restriction_level_name, iv);
+    }
+    return iv;
+}
 
 void init_icu_spoof_checker(void)
 {
     rb_cICU_SpoofChecker = rb_define_class_under(rb_mICU, "SpoofChecker", rb_cObject);
-    rb_mChecks = rb_define_module_under(rb_cICU_SpoofChecker, "Checks");
-    rb_mRestrictionLevel = rb_define_module_under(rb_cICU_SpoofChecker, "RestrictionLevel");
-    rb_include_module(rb_cICU_SpoofChecker, rb_mChecks);
-    rb_include_module(rb_cICU_SpoofChecker, rb_mRestrictionLevel);
-    DEFINE_SPOOF_ENUM_CONST(rb_mChecks, SINGLE_SCRIPT_CONFUSABLE);
-    DEFINE_SPOOF_ENUM_CONST(rb_mChecks, MIXED_SCRIPT_CONFUSABLE);
-    DEFINE_SPOOF_ENUM_CONST(rb_mChecks, WHOLE_SCRIPT_CONFUSABLE);
-    DEFINE_SPOOF_ENUM_CONST(rb_mChecks, CONFUSABLE);
-    DEFINE_SPOOF_ENUM_CONST(rb_mChecks, ANY_CASE);
-    DEFINE_SPOOF_ENUM_CONST(rb_mChecks, RESTRICTION_LEVEL);
-    DEFINE_SPOOF_ENUM_CONST(rb_mChecks, SINGLE_SCRIPT);
-    DEFINE_SPOOF_ENUM_CONST(rb_mChecks, INVISIBLE);
-    DEFINE_SPOOF_ENUM_CONST(rb_mChecks, CHAR_LIMIT);
-    DEFINE_SPOOF_ENUM_CONST(rb_mChecks, MIXED_NUMBERS);
-    DEFINE_SPOOF_ENUM_CONST(rb_mChecks, ALL_CHECKS);
-    DEFINE_SPOOF_ENUM_CONST(rb_mChecks, AUX_INFO);
-    DEFINE_SPOOF_ENUM_CONST(rb_mRestrictionLevel, ASCII);
-    DEFINE_SPOOF_ENUM_CONST(rb_mRestrictionLevel, SINGLE_SCRIPT_RESTRICTIVE);
-    DEFINE_SPOOF_ENUM_CONST(rb_mRestrictionLevel, HIGHLY_RESTRICTIVE);
-    DEFINE_SPOOF_ENUM_CONST(rb_mRestrictionLevel, MODERATELY_RESTRICTIVE);
-    DEFINE_SPOOF_ENUM_CONST(rb_mRestrictionLevel, MINIMALLY_RESTRICTIVE);
-    DEFINE_SPOOF_ENUM_CONST(rb_mRestrictionLevel, UNRESTRICTIVE);
-    DEFINE_SPOOF_ENUM_CONST(rb_mRestrictionLevel, RESTRICTION_LEVEL_MASK);
-    DEFINE_SPOOF_ENUM_CONST(rb_mRestrictionLevel, UNDEFINED_RESTRICTIVE);
-
+    rb_define_singleton_method(rb_cICU_SpoofChecker, "available_checks", spoof_checker_available_checks, 0);
+    rb_define_singleton_method(rb_cICU_SpoofChecker, "available_restriction_levels", spoof_checker_available_restriction_levels, 0);
     rb_define_alloc_func(rb_cICU_SpoofChecker, spoof_checker_alloc);
     rb_define_method(rb_cICU_SpoofChecker, "initialize", spoof_checker_initialize, 0);
     rb_define_method(rb_cICU_SpoofChecker, "restriction_level", spoof_checker_get_restriction_level, 0);
     rb_define_method(rb_cICU_SpoofChecker, "restriction_level=", spoof_checker_set_restriction_level, 1);
+    rb_define_method(rb_cICU_SpoofChecker, "check", spoof_checker_check, 1);
     rb_define_method(rb_cICU_SpoofChecker, "checks", spoof_checker_get_checks, 0);
     rb_define_method(rb_cICU_SpoofChecker, "checks=", spoof_checker_set_checks, 1);
     rb_define_method(rb_cICU_SpoofChecker, "confusable?", spoof_checker_confusable, 2);
