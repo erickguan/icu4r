@@ -85,7 +85,6 @@ else
 
       if static_p
         self.configure_options += [
-            "--disable-shared",
             "--enable-static",
             "--disable-renaming"
         ]
