@@ -86,12 +86,13 @@ else
       if static_p
         self.configure_options += [
             "--enable-static",
+            "--enable-shared",
             "--disable-renaming"
         ]
         env['CFLAGS'] = "-fPIC #{env['CFLAGS']}"
         env['CPPFLAGS'] = "-DU_CHARSET_IS_UTF8=1 -DU_USING_ICU_NAMESPACE=0 -DU_STATIC_IMPLEMENTATION #{env['CPPFLAGS']}"
         env['CXXFLAGS'] = "-fPIC -fno-exceptions #{env['CXXFLAGS']}"
-        env['LDFLAGS'] = "-fPIC -static-libstdc++ #{env['CFLAGS']}"
+        env['LDFLAGS'] = "-static-libstdc++ #{env['CFLAGS']}"
       else
         self.configure_options += [
             "--enable-shared",
@@ -166,7 +167,6 @@ If you are using Bundler, tell it to use the option:
 
   static_p = enable_config('static', true) or
       message "Static linking is disabled.\n"
-  recipes = []
 
   libicu_recipe = ICURecipe.new("libicu", "59.1", static_p) do |recipe|
     recipe.files = [{
@@ -190,9 +190,8 @@ If you are using Bundler, tell it to use the option:
                         # Primary key fingerprint: BA90 283A 60D6 7BA0 DD91  0A89 3932 080F 4FB4 19E3
                     }]
   end
-  recipes.push libicu_recipe
 
-  recipes.each do |recipe|
+  libicu_recipe.tap do |recipe|
     checkpoint = "#{recipe.target}/#{recipe.name}-#{recipe.version}-#{recipe.host}.installed"
     unless File.exist?(checkpoint)
       recipe.cook
@@ -202,40 +201,38 @@ If you are using Bundler, tell it to use the option:
     recipe.activate
   end
 
-  $libs = $libs.shellsplit.tap do |libs|
-    [libicu_recipe].each do |recipe|
-      libname = recipe.name[/\Alib(.+)\z/, 1]
-      # TODO: build with pkg-config
-      # Should do like PKG_CONFIG_PATH=/root/icu4r/ports/x86_64-pc-linux-gnu/libicu/59.1/lib/pkgconfig/ pkg-config --static  icu-uc
-      File.join(recipe.path, "bin", "#{libname}-config").tap do |config|
-        # call config scripts explicit with 'sh' for compat with Windows
-        $CPPFLAGS = '-DU_DISABLE_RENAMING=1 -DU_CHARSET_IS_UTF8=1 -DU_USING_ICU_NAMESPACE=0 -DU_STATIC_IMPLEMENTATION' << ' ' << $CPPFLAGS
-        `sh #{config} --ldflags`.strip.shellsplit.each do |arg|
-          case arg
-            when /\A-L(.+)\z/
-              # Prioritize ports' directories
-              if $1.start_with?(ROOT + '/')
-                $LIBPATH = [$1] | $LIBPATH
-              else
-                $LIBPATH = $LIBPATH | [$1]
-              end
-            when /\A-l./
-              libs.unshift(arg)
-            else
-              $LDFLAGS << ' ' << arg.shellescape
-          end
+  libname = libicu_recipe.name[/\Alib(.+)\z/, 1]
+  # TODO: build with pkg-config
+  # Should do like PKG_CONFIG_PATH=/root/icu4r/ports/x86_64-pc-linux-gnu/libicu/59.1/lib/pkgconfig/ pkg-config --static  icu-uc
+  File.join(libicu_recipe.path, "bin", "#{libname}-config").tap do |config|
+    # call config scripts explicit with 'sh' for compat with Windows
+    `sh #{config} --ldflags`.strip.shellsplit.each do |arg|
+      case arg
+      when /\A-L(.+)\z/
+        # Prioritize ports' directories
+        if $1.start_with?(ROOT + '/')
+          $LIBPATH.unshift($1)
+        else
+          $LIBPATH.push($1)
         end
-        $INCFLAGS = `sh #{config} --cppflags-searchpath `.strip << ' ' << $INCFLAGS
-        $CFLAGS = '-DU_DISABLE_RENAMING=1 -DU_CHARSET_IS_UTF8=1 -DU_USING_ICU_NAMESPACE=0 -DU_STATIC_IMPLEMENTATION' << ' ' << `sh #{config} --cflags`.strip << $CFLAGS
+      when /\A-l./
+        $LDFLAGS << ' ' << arg
+      else
+        $LDFLAGS << ' ' << arg.shellescape
       end
     end
-  end.shelljoin
-
+    $INCFLAGS = `sh #{config} --cppflags-searchpath `.strip << ' ' << $INCFLAGS
+    $CPPFLAGS = '-DU_DISABLE_RENAMING=1 -DU_CHARSET_IS_UTF8=1 -DU_USING_ICU_NAMESPACE=0 -DU_STATIC_IMPLEMENTATION' << ' ' << $CPPFLAGS
+    $CFLAGS = `sh #{config} --cflags`.strip << $CFLAGS
+  end
 end
 
 $CFLAGS << ' -O3 -funroll-loops -std=c99'
 $CFLAGS << ' -Wextra -O0 -ggdb3' if ENV['DEBUG']
 
-puts $CFLAGS, $LIBPATH, $CPPFLAGS, $CXXFLAGS
-
+unless have_library('icui18n', 'u_errorName') or
+  have_library('libicui18n', 'u_errorName') or
+  find_library('icui18n', 'u_errorName', *$LIBPATH)
+  crash("ICU build not found.")
+end
 create_makefile('icu/icu')
