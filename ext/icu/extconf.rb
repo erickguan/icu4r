@@ -6,15 +6,25 @@ ROOT = File.expand_path(File.join(File.dirname(__FILE__), '..', '..'))
 
 # Utility functions
 
+def asplode(lib)
+  abort "-----\n#{lib} is missing.  Please locate mkmf.log to investigate how it is failing.\n-----"
+end
+
 def using_system_libraries?
   arg_config('--use-system-libraries', !!ENV['ICU_USE_SYSTEM_LIBRARIES'])
+end
+
+def lib_a(ldflag)
+  case ldflag
+  when /\A-l(.+)/
+    "lib#{$1}.#{$LIBEXT}"
+  end
 end
 
 # Building with system ICU
 
 if using_system_libraries?
-  message "Building ICU using system libraries.\n Not supported yet, PR welcome!"
-  exit 1
+  message "Building ICU using system libraries.\n"
 
   unless dir_config('icu').any?
     base = if !`which brew`.empty?
@@ -43,7 +53,7 @@ install by brew install icu4c or apt-get install libicu-dev)
   have_library 'icuuc' or abort 'libicuuc missing'
   have_library 'icudata' or abort 'libicudata missing'
 else
-  message "Building ICU from source.\n"
+  message "Building ICU from source. TODO: Loading in OS X. Use brew icu4c instead.\n"
 
   # The gem version constraint in the Rakefile is not respected at install time.
   # Keep this version in sync with the one in the Rakefile !
@@ -225,14 +235,20 @@ If you are using Bundler, tell it to use the option:
     $CPPFLAGS = '-DU_DISABLE_RENAMING=1 -DU_CHARSET_IS_UTF8=1 -DU_USING_ICU_NAMESPACE=0 -DU_STATIC_IMPLEMENTATION' << ' ' << $CPPFLAGS
     $CFLAGS = `sh #{config} --cflags`.strip << $CFLAGS
   end
+
+  $LIBPATH = ["#{libicu_recipe.path}/lib"] | $LIBPATH if libicu_recipe
+  $libs = ["-licui18n", "-licuuc", "-licudata"].map do |arg|
+   File.join(libicu_recipe.path, 'lib', lib_a(arg))
+  end.shelljoin
 end
 
 $CFLAGS << ' -O3 -funroll-loops -std=c99'
 $CFLAGS << ' -Wextra -O0 -ggdb3' if ENV['DEBUG']
 
-unless have_library('icui18n', 'u_errorName') or
-  have_library('libicui18n', 'u_errorName') or
-  find_library('icui18n', 'u_errorName', *$LIBPATH)
-  crash("ICU build not found.")
-end
+have_func('u_init', 'unicode/uclean.h') ||
+  have_library('icui18n', 'u_init', 'unicode/uclean.h') ||
+  have_library('libicui18n', 'u_init', 'unicode/uclean.h') or
+  asplode('libicui18n')
+have_func('u_errorName')
+
 create_makefile('icu/icu')

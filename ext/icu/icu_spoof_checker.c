@@ -156,19 +156,21 @@ VALUE spoof_checker_check(VALUE self, VALUE rb_str)
     UErrorCode status = U_ZERO_ERROR;
     int32_t result = 0;
 
+    // TODO: Migrate to uspoof_check2UTF8 once it's not draft
     if (icu_is_rb_str_as_utf_8(rb_str)) {
-       result = uspoof_check2UTF8(this->service,
-                                  RSTRING_PTR(rb_str),
-                                  RSTRING_LENINT(rb_str),
-                                  NULL,
-                                  &status);
+       result = uspoof_checkUTF8(this->service,
+                                 RSTRING_PTR(rb_str),
+                                 RSTRING_LENINT(rb_str),
+                                 NULL,
+                                 &status);
     } else {
         VALUE in = icu_ustring_from_rb_str(rb_str);
-        result = uspoof_check2(this->service,
-                               icu_ustring_ptr(in),
-                               icu_ustring_len(in),
-                               NULL,
-                               &status);
+        // TODO: Migrate to uspoof_check once it's not draft
+        result = uspoof_check(this->service,
+                              icu_ustring_ptr(in),
+                              icu_ustring_len(in),
+                              NULL,
+                              &status);
     }
     if (U_FAILURE(status)) {
         icu_rb_raise_icu_error(status);

@@ -6,6 +6,27 @@ Ruby required 2.3.1.
 
 [![Build Status](https://travis-ci.org/fantasticfears/icu4r.svg?branch=master)](https://travis-ci.org/fantasticfears/icu4r)
 
+## Usage
+
+If you use OS X,
+
+```
+brew install icu4c
+gem install icu -- --use-system-libraries
+```
+
+else,
+
+```
+gem install icu
+```
+
+For usage:
+
+```
+require 'icu'
+```
+
 ## Design
 
 Almost all arguments passed should be expected as Ruby `String` with various encodings.
