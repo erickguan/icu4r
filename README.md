@@ -1,6 +1,6 @@
 ICU - A Unicode processing functions ruby gem - binding to ICU
 
-Beta stage.
+Beta stage. I'm sure ffi-icu can also do the same thing once you understand the internal C module for transcoding.
 
 Ruby required 2.3.1.
 
