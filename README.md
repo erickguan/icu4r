@@ -4,6 +4,7 @@ Beta stage. I'm sure ffi-icu can also do the same thing once you understand the 
 
 Ruby required 2.3.1.
 
+[![Gem Version](https://badge.fury.io/rb/icu.svg)](https://badge.fury.io/rb/icu)
 [![Build Status](https://travis-ci.org/fantasticfears/icu4r.svg?branch=master)](https://travis-ci.org/fantasticfears/icu4r)
 
 ## Usage
