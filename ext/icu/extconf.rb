@@ -29,7 +29,7 @@ if using_system_libraries?
   unless dir_config('icu').any?
     base = if !`which brew`.empty?
              `brew --prefix`.strip
-           elsif File.exists?("/usr/local/Cellar/icu4c")
+           elsif File.exist?("/usr/local/Cellar/icu4c")
              '/usr/local/Cellar'
            end
 
